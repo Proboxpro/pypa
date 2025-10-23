@@ -56,8 +56,9 @@ struct HomeView: View {
                     }
                 }
             }
-            .padding(.vertical)
-            .padding(.horizontal, 10)
+        // MARK: - убрал отступы для корректного отображения серого цвета у TabView
+        //.padding(.vertical)
+        //.padding(.horizontal, 10)
             .onAppear {
                 viewModel.orderDescription.forEach({print($0)})
             }

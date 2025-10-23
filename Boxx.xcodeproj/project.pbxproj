@@ -22,6 +22,9 @@
 		8850C6EA2B8F731300DC7A70 /* MessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8850C6E92B8F731300DC7A70 /* MessageService.swift */; };
 		8850C6EC2B8F78FF00DC7A70 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8850C6EB2B8F78FF00DC7A70 /* ChatViewModel.swift */; };
 		88FA98B62B96143E0077E37D /* OrderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA98B52B96143E0077E37D /* OrderViewModel.swift */; };
+		B39A23B72EAA735A005E80BB /* CenterButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A23B62EAA735A005E80BB /* CenterButtonView.swift */; };
+		B39A23BB2EAA7368005E80BB /* TabItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A23BA2EAA7368005E80BB /* TabItemView.swift */; };
+		B39A23BD2EAA7378005E80BB /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A23BC2EAA7378005E80BB /* TabItem.swift */; };
 		CF478BD52E8E897D004DA93F /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD42E8E897D004DA93F /* ImagePicker.swift */; };
 		CF478BD62E8E897D004DA93F /* AuthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD32E8E897D004DA93F /* AuthTextField.swift */; };
 		CF478BD82E8E8C87004DA93F /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD72E8E8C87004DA93F /* StartView.swift */; };
@@ -151,6 +154,9 @@
 		8850C6E92B8F731300DC7A70 /* MessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageService.swift; sourceTree = "<group>"; };
 		8850C6EB2B8F78FF00DC7A70 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		88FA98B52B96143E0077E37D /* OrderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderViewModel.swift; sourceTree = "<group>"; };
+		B39A23B62EAA735A005E80BB /* CenterButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterButtonView.swift; sourceTree = "<group>"; };
+		B39A23BA2EAA7368005E80BB /* TabItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItemView.swift; sourceTree = "<group>"; };
+		B39A23BC2EAA7378005E80BB /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
 		CF478BD32E8E897D004DA93F /* AuthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTextField.swift; sourceTree = "<group>"; };
 		CF478BD42E8E897D004DA93F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		CF478BD72E8E8C87004DA93F /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
@@ -530,6 +536,7 @@
 				F7E9B8762B386D8E001169BE /* NewOrder.swift */,
 				F7E9B8402B319E03001169BE /* Feedback.swift */,
 				21F3E5632BD0315900019E75 /* OrderDescriptionItem.swift */,
+				B39A23BC2EAA7378005E80BB /* TabItem.swift */,
 				8850C6E72B8EEE8A00DC7A70 /* Chat */,
 			);
 			path = Model;
@@ -554,6 +561,8 @@
 		F7F7EE322B06671B00817353 /* Tabbar */ = {
 			isa = PBXGroup;
 			children = (
+				B39A23BA2EAA7368005E80BB /* TabItemView.swift */,
+				B39A23B62EAA735A005E80BB /* CenterButtonView.swift */,
 				F7F7EE352B06674D00817353 /* MainTabBar.swift */,
 			);
 			path = Tabbar;
@@ -828,6 +837,7 @@
 				F7F7EE522B07204600817353 /* OrdersList.swift in Sources */,
 				CFAF58642EA519B900A2617D /* StrokeText.swift in Sources */,
 				211CD9732BCC5C6700DE4317 /* OrderDetail.swift in Sources */,
+				B39A23B72EAA735A005E80BB /* CenterButtonView.swift in Sources */,
 				F7FB2A4E2BAAF87300A0B30D /* SearchC.swift in Sources */,
 				CF478BD52E8E897D004DA93F /* ImagePicker.swift in Sources */,
 				CF478BD62E8E897D004DA93F /* AuthTextField.swift in Sources */,
@@ -854,6 +864,7 @@
 				F7F7EE582B07306300817353 /* DestinationSearchView.swift in Sources */,
 				F7E9B83D2B30EAB2001169BE /* ReviewCollection.swift in Sources */,
 				F7E9B8412B319E03001169BE /* Feedback.swift in Sources */,
+				B39A23BD2EAA7378005E80BB /* TabItem.swift in Sources */,
 				F7F7EE392B066A2F00817353 /* ListingitemView.swift in Sources */,
 				F7E9B81A2B2DF15E001169BE /* ListingItem.swift in Sources */,
 				CF478BDE2E8E9078004DA93F /* AuthButtonLabel.swift in Sources */,
@@ -886,6 +897,7 @@
 				F7C145422BB91D41006D80DF /* MyListingView.swift in Sources */,
 				FAB339592BE0E5B900144C14 /* Storage.swift in Sources */,
 				F7F7EE0E2B0610F900817353 /* Registration.swift in Sources */,
+				B39A23BB2EAA7368005E80BB /* TabItemView.swift in Sources */,
 				F7F7EDD22B06049300817353 /* BoxxApp.swift in Sources */,
 				8850C6EA2B8F731300DC7A70 /* MessageService.swift in Sources */,
 				882C20662B9DF101002CE6FE /* Date+TimeAgoFormat.swift in Sources */,
