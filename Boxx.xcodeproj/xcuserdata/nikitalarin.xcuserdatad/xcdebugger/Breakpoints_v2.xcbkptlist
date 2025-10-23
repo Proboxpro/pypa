@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "C3937A24-76AF-4DEB-B939-1D225BFA6996"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "21F1795D-206F-488E-8D43-178C9E87A841"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Boxx/Core/Explore/UploadPost/UploadViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "9"
+            endingLineNumber = "9"
+            landmarkName = "AddInfo(freeForm:startDate:numbkilo:)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "21F1795D-206F-488E-8D43-178C9E87A841 - 7d5d53d08ae25d44"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Boxx.UploadService.init() -&gt; Boxx.UploadService"
+                  moduleName = "Boxx"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/nikitalarin/Documents/untitled%20folder/box/Boxx/Boxx/Core/Explore/UploadPost/UploadViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "9"
+                  endingLineNumber = "9"
+                  offsetFromSymbolStart = "0">
+               </Location>
+               <Location
+                  uuid = "21F1795D-206F-488E-8D43-178C9E87A841 - 448245d4f7c6b575"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Boxx.AddInfo(UserName: Swift.String, UserAge: Swift.Int, Gender: Swift.Int) -&gt; ()"
+                  moduleName = "Boxx"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/nikitalarin/Documents/untitled%20folder/box/Boxx/Boxx/Core/Explore/UploadPost/UploadViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "10"
+                  endingLineNumber = "10"
+                  offsetFromSymbolStart = "108">
+               </Location>
+               <Location
+                  uuid = "21F1795D-206F-488E-8D43-178C9E87A841 - 3f203b888444646a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Boxx.AddInfo(freeForm: Swift.String, startDate: Swift.Int, numbkilo: Swift.Int, city: Swift.Int) -&gt; ()"
+                  moduleName = "Boxx"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/nikitalarin/Documents/untitled%20folder/box/Boxx/Boxx/Core/Explore/UploadPost/UploadViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "10"
+                  endingLineNumber = "10"
+                  offsetFromSymbolStart = "132">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A1031F30-3E97-4400-9EF2-163CC1BD520D"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Boxx/Core/Message/Chat/ChatView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "4"
+            endingLineNumber = "4"
+            landmarkName = "unknown"
+            landmarkType = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
