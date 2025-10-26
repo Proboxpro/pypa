@@ -37,6 +37,7 @@ struct MainTabBar: View {
                 TabView(selection: $selectedTab) {
 
                     DeparturesView()
+//                        .ignoresSafeArea(.keyboard)
                         .tag(1)
                         .tabItem { tabElem(name: "Посылки", imageName: "Home 1") }
                     Search()
@@ -75,6 +76,7 @@ struct MainTabBar: View {
 
                         .offset(y: -25) // поднимаем над таббаром
                 }
+                .ignoresSafeArea(.keyboard)
             }
         }
     }

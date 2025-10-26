@@ -14,12 +14,12 @@ struct DeparturesView: View {
         
         NavigationStack {
             VStack(spacing: 30) {
-                NavigationLink("YouAreLeavingView") {
-                    YouAreLeavingView()
+                NavigationLink("Уезжаете") {
+                    YouAreSendingView()
                 }
                 
-                NavigationLink("YouAreSendingView") {
-                    YouAreSendingView()
+                NavigationLink("Отправляете") {
+                    YouAreLeavingView()
                 }
             }
         }
