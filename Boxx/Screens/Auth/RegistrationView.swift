@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Registration: View {
+struct RegistrationView: View {
     @State private var email = ""
     @State private var login = ""
     @State private var fullName = ""
@@ -15,8 +15,6 @@ struct Registration: View {
     @State private var confirmPassword = ""
     @State private var imageUrl = ""
     @State private var backgroundPicture = ""
-
-    
 
 
     @Environment(\.dismiss) var dismiss
@@ -88,16 +86,15 @@ struct Registration: View {
             }
             .offset(y: -30)
         }
-        .ignoresSafeArea(.keyboard)
+//        .ignoresSafeArea(.keyboard, edges: .bottom)
         .padding(.horizontal, 10)
-        
+//        .ignoresSafeArea(.keyboard)
     }
 }
-extension Registration {
-}
+
 
 struct Registration_Previews: PreviewProvider {
     static var previews: some View {
-        Registration()
+        RegistrationView()
     }
 }

@@ -24,12 +24,13 @@ struct AuthContainerView: View {
                 Login()
                     .tag(Tab.login)
                     .tabItem { EmptyView() }
-                Registration()
+                RegistrationView()
                     .tag(Tab.register)
                     .tabItem { EmptyView() }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .tabBar)
     }

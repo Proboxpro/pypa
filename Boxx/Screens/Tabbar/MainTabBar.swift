@@ -35,10 +35,8 @@ struct MainTabBar: View {
             //            if true {
             ZStack {
                 TabView(selection: $selectedTab) {
-                    //                Color.gray
-                    //                MainSearch(user: user)
-                    //                MainSearch(user: User(id: "123", fullname: "vsy", login: "sa", email: "santa51@amil.ru"))
-                    HomeView()
+
+                    DeparturesView()
                         .tag(1)
                         .tabItem { tabElem(name: "Посылки", imageName: "Home 1") }
                     Search()
@@ -49,13 +47,7 @@ struct MainTabBar: View {
                     
                     HomeView()
                         .tag(3)
-                        .tabItem {
-//                            Image("ball_center")
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(width: 80, height: 80)
-//                                .offset(y: -100)
-                        }
+                        .tabItem {}
                     
                     OrdersList()
                         .tag(4)
@@ -70,9 +62,7 @@ struct MainTabBar: View {
                 
                 VStack {
                     Spacer()
-                    //                    Button(action: {
-                    //                        selectedTab = 3
-                    //                    }) {
+
                     Image(selectedTab == 3  ? "ball_center" : "ball_white")
 //                        .renderingMode(.template)
                         .resizable()
@@ -82,9 +72,7 @@ struct MainTabBar: View {
                         .onTapGesture {
                             selectedTab = 3
                         }
-//                        .tag("3")
-                    //                            .shadow(radius: 5)
-                    //                    }
+
                         .offset(y: -25) // поднимаем над таббаром
                 }
             }

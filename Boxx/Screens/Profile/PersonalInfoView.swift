@@ -5,8 +5,6 @@
 //  Created by Assistant on 2024.
 //
 
-import SwiftUI
-import SDWebImageSwiftUI
 
 import SwiftUI
 import SDWebImageSwiftUI
