@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct DeparturesView: View {
+    @EnvironmentObject var viewModel: AuthViewModel
+    
     var body: some View {
         
         NavigationStack {

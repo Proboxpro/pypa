@@ -10,17 +10,19 @@ import Nuke
 import NukeUI
 
 struct TripCardView: View {
+    var width: CGFloat
+    
     var item: ListingItem
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             backgroundImage
-                .frame(width: 240, height: 170)
+                .frame(width: width, height: 170)
                 .clipped()
                 .cornerRadius(12)
             
             LinearGradient(colors: [.black.opacity(0.0), .black.opacity(0.6)], startPoint: .top, endPoint: .bottom)
                 .cornerRadius(12)
-                .frame(width: 240, height: 140)
+                .frame(width: width, height: 140)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text("\(item.cityFrom) - \(item.cityTo)")
@@ -39,7 +41,7 @@ struct TripCardView: View {
             }
             .padding(12)
         }
-        .frame(width: 240, height: 170)
+        .frame(width: width, height: 170)
         .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
     }
     
@@ -68,7 +70,7 @@ struct TripCardView: View {
     
     struct TripCardView_Previews: PreviewProvider {
         static var previews: some View {
-            TripCardView(item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: "6000 ₽", cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
+            TripCardView(width: 240, item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: "6000 ₽", cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
         }
     }
     

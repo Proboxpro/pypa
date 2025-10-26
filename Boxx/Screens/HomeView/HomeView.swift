@@ -36,7 +36,7 @@ struct HomeView: View {
                     HStack(spacing: 16) {
 //                        ForEach(trips, id: \.id) { item in
                         ForEach(viewModel.myorder) { item in
-                            TripCardView(item: item)
+                            TripCardView(width: 240, item: item)
                         }
                     }
                     .frame(height: 180)
