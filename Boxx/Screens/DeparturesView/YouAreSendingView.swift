@@ -50,6 +50,13 @@ struct DeliveryFormView: View {
     }
     
     @State var showNext: Bool = false
+    
+    //MARK: - second screen
+    @State private var descriptionText = ""
+    @State private var pricePerKg = ""
+    @State private var selectedPrice: Int? = nil
+    
+    let presetPrices = [500, 2000, 4000]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -87,6 +94,7 @@ struct DeliveryFormView: View {
                 .background(Color.green)
                 .cornerRadius(12)
             }
+//            .ignoresSafeArea(.keyboard)
             .padding(.horizontal)
             .padding(.bottom, 30)
         }
@@ -135,12 +143,6 @@ struct DeliveryFormView: View {
         }
     }
     
-    
-    @State private var descriptionText = ""
-    @State private var pricePerKg = ""
-    @State private var selectedPrice: Int? = nil
-    
-    let presetPrices = [500, 2000, 4000]
     
     @MainActor
     func secondScreen()-> some View {
@@ -193,7 +195,7 @@ struct DeliveryFormView: View {
                     }
                 }
 
-                Spacer()
+//                Spacer()
             }
             .padding()
         }
