@@ -23,11 +23,11 @@ struct YouAreLeavingView: View {
                 Text("search")
                 
                 ScrollView() {
-//                    LazyVStack {
-                        ForEach(viewModel.myorder) { item in
+                    ForEach(viewModel.myorder) { item in
+                        NavigationLink(destination: CreateDealView(item: item).navigationBarBackButtonHidden(true)) {
                             TripCardView(width: screenWidth - 20, item: item)
                         }
-//                    }
+                    }
                 }
             }
             .frame(maxWidth: .infinity)

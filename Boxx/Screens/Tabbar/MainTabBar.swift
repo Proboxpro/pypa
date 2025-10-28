@@ -10,20 +10,36 @@ import Firebase
 
 struct TestView: View {
     var body: some View {
-        Text("Hello, World!")
+        ZStack{
+            Color.white.ignoresSafeArea()
+            Text("Hello, World!")
+                .frame(maxHeight: .infinity)
+        }
     }
+        
 }
 
 //@available(iOS 17.0, *)
 struct MainTabBar: View {
+    
     @EnvironmentObject var viewModel: AuthViewModel
-    @State var selectedTab: Int = 0
+    @State var selectedTab: TabItem?
+    private let tabHeight: CGFloat = 50
+    private let tabWidth: CGFloat = 50
+    @State var items = [
+        TabItem(title: "Посылки", color: .baseMint, icon: "Home 1"),
+        TabItem(title: "Сделки", color: .baseMint, icon: "circle.plus.custom"),
+        TabItem(title: "Партнёры", color: .baseMint, icon: "person.2.circle"),
+        TabItem(title: "Профиль", color: .baseMint, icon: "Profile 1"),
+        
+    ]
+    
     
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor.gray.withAlphaComponent(0.1)  // фон таббара
-
+        
         UITabBar.appearance().standardAppearance = appearance
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = appearance
@@ -31,78 +47,57 @@ struct MainTabBar: View {
     }
     
     var body: some View {
-        if let user = viewModel.currentUser{
-            //            if true {
-            ZStack {
-                TabView(selection: $selectedTab) {
-
-                    DeparturesView()
-//                        .ignoresSafeArea(.keyboard)
-                        .tag(1)
-                        .tabItem { tabElem(name: "Посылки", imageName: "Home 1") }
-                    Search()
-                        .tag(2)
-                        .tabItem {
-                            Image(systemName: "plus.circle")
+        if viewModel.currentUser != nil {
+            ZStack(alignment: .bottom) {
+                Color.clear.ignoresSafeArea()
+                VStack(spacing: 5) {
+                    if let selectedTab = selectedTab {
+                        switch selectedTab.title {
+                        case "Посылки":
+                            DeparturesView()
+                        case "Сделки":
+                            OrdersList()
+                        case "Главная":
+                            HomeView()
+                        case "Партнёры":
+                            TestView()
+                        case "Профиль":
+                            Profile()
+                        default:
+                            Text("Unknown tab")
                         }
-                    
-                    HomeView()
-                        .tag(3)
-                        .tabItem {}
-                    
-                    OrdersList()
-                        .tag(4)
-                        .tabItem {
-                            Image(systemName: "message")
+                    } else {
+                        Text("Select a Tab")
+                            .font(.largeTitle)
+                            .foregroundStyle(.gray)
+                    }
+                    HStack {
+                        HStack {
+                            TabItemView(item: items[0], selectedTab: $selectedTab, tabHeight: tabHeight)
+                            TabItemView(item: items[1], selectedTab: $selectedTab, tabHeight: tabHeight)
                         }
-                    Profile()
-                        .tag(5)
-                        .tabItem { tabElem(name: "Профиль", imageName: "Profile 1") }
+                        
+                        Spacer()
+                          .frame(width: tabWidth, alignment: .center)
+                        
+                        HStack {
+                            TabItemView(item: items[2], selectedTab: $selectedTab, tabHeight: tabHeight)
+                            TabItemView(item: items[3], selectedTab: $selectedTab, tabHeight: tabHeight)
+                        }
+                    }
+                    .background(Color.tabBackground)
+                    .padding(.horizontal, 10)
                 }
-                .accentColor(.baseMint)
-                
-                VStack {
-                    Spacer()
-
-                    Image(selectedTab == 3  ? "ball_center" : "ball_white")
-//                        .renderingMode(.template)
-                        .resizable()
-                        .foregroundStyle(Color.gray)
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                        .onTapGesture {
-                            selectedTab = 3
-                        }
-
-                        .offset(y: -25) // поднимаем над таббаром
+                .onAppear {
+                    selectedTab = items[0]
                 }
-                .ignoresSafeArea(.keyboard)
+                CenterButton(item: selectedTab ?? items[0], height: 100, selectedTab: $selectedTab)
+                    .offset(y: -4)
             }
+            .background(Color.tabBackground)
         }
-    }
-    
-    @ViewBuilder
-    private func tabElem(name: String, imageName: String)->some View {
-        Label {
-            Text(name)
-                .font(.system(size: 18))
-        } icon: {
-            tabBarImage(name: imageName)
-//                                .scaleEffect(0.3)
-        }
-    }
-    
-    @ViewBuilder
-    private func tabBarImage(name: String)-> some View {
-        Image(name)
-            .resizable()
-            .renderingMode(.template)
-            .scaledToFit()
-            .frame(width: 30, height: 30)
     }
 }
-
-
 #Preview {
     MainTabBar().environmentObject(AuthViewModel())
 }
