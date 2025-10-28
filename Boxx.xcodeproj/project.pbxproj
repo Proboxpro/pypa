@@ -22,6 +22,11 @@
 		8850C6EA2B8F731300DC7A70 /* MessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8850C6E92B8F731300DC7A70 /* MessageService.swift */; };
 		8850C6EC2B8F78FF00DC7A70 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8850C6EB2B8F78FF00DC7A70 /* ChatViewModel.swift */; };
 		88FA98B62B96143E0077E37D /* OrderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FA98B52B96143E0077E37D /* OrderViewModel.swift */; };
+		B30EA0592EAF968C00CC2EDD /* CreateDealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA0582EAF968C00CC2EDD /* CreateDealView.swift */; };
+		B30EA0932EAFCC4300CC2EDD /* SizeConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA0922EAFCC4300CC2EDD /* SizeConstants.swift */; };
+		B30EA09A2EB0F61500CC2EDD /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA0992EB0F61500CC2EDD /* TabItem.swift */; };
+		B30EA09C2EB0F68A00CC2EDD /* TabItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA09B2EB0F68A00CC2EDD /* TabItemView.swift */; };
+		B30EA09E2EB0F6AA00CC2EDD /* CenterButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA09D2EB0F6AA00CC2EDD /* CenterButtonView.swift */; };
 		CF478BD52E8E897D004DA93F /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD42E8E897D004DA93F /* ImagePicker.swift */; };
 		CF478BD62E8E897D004DA93F /* AuthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD32E8E897D004DA93F /* AuthTextField.swift */; };
 		CF478BD82E8E8C87004DA93F /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD72E8E8C87004DA93F /* StartView.swift */; };
@@ -155,6 +160,11 @@
 		8850C6E92B8F731300DC7A70 /* MessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageService.swift; sourceTree = "<group>"; };
 		8850C6EB2B8F78FF00DC7A70 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		88FA98B52B96143E0077E37D /* OrderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderViewModel.swift; sourceTree = "<group>"; };
+		B30EA0582EAF968C00CC2EDD /* CreateDealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateDealView.swift; sourceTree = "<group>"; };
+		B30EA0922EAFCC4300CC2EDD /* SizeConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SizeConstants.swift; sourceTree = "<group>"; };
+		B30EA0992EB0F61500CC2EDD /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
+		B30EA09B2EB0F68A00CC2EDD /* TabItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItemView.swift; sourceTree = "<group>"; };
+		B30EA09D2EB0F6AA00CC2EDD /* CenterButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterButtonView.swift; sourceTree = "<group>"; };
 		CF478BD32E8E897D004DA93F /* AuthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTextField.swift; sourceTree = "<group>"; };
 		CF478BD42E8E897D004DA93F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		CF478BD72E8E8C87004DA93F /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
@@ -314,6 +324,7 @@
 				8842B6142BA7EDFA003AF2B8 /* Message+Make.swift */,
 				FA62333D2BC86309008CBD84 /* Bindings.swift */,
 				FA6233482BC99D3A008CBD84 /* String+Extension.swift */,
+				B30EA0922EAFCC4300CC2EDD /* SizeConstants.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -379,6 +390,7 @@
 				CFB84DBA2EAE189A008DD50D /* DeparturesView.swift */,
 				CFB84DBE2EAE1930008DD50D /* YouAreSendingView.swift */,
 				CFB84DBC2EAE191A008DD50D /* YouAreLeavingView.swift */,
+				B30EA0582EAF968C00CC2EDD /* CreateDealView.swift */,
 			);
 			path = DeparturesView;
 			sourceTree = "<group>";
@@ -549,6 +561,7 @@
 				F7E9B8402B319E03001169BE /* Feedback.swift */,
 				21F3E5632BD0315900019E75 /* OrderDescriptionItem.swift */,
 				8850C6E72B8EEE8A00DC7A70 /* Chat */,
+				B30EA0992EB0F61500CC2EDD /* TabItem.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -574,6 +587,8 @@
 			children = (
 				F7F7EDD32B06049300817353 /* ContentView.swift */,
 				F7F7EE352B06674D00817353 /* MainTabBar.swift */,
+				B30EA09B2EB0F68A00CC2EDD /* TabItemView.swift */,
+				B30EA09D2EB0F6AA00CC2EDD /* CenterButtonView.swift */,
 			);
 			path = Tabbar;
 			sourceTree = "<group>";
@@ -838,6 +853,7 @@
 				881540262BA5F22C00D8AD2C /* UIImage+MergeBySide.swift in Sources */,
 				FAB3395E2BE0E5DF00144C14 /* SumSubViewController.swift in Sources */,
 				F7F7EE312B06324800817353 /* AuthViewModel.swift in Sources */,
+				B30EA0592EAF968C00CC2EDD /* CreateDealView.swift in Sources */,
 				8850C6E22B8EEC7F00DC7A70 /* Converstation.swift in Sources */,
 				CFB84DBF2EAE1930008DD50D /* YouAreSendingView.swift in Sources */,
 				F7E9B8992B403A01001169BE /* Test.swift in Sources */,
@@ -854,6 +870,7 @@
 				F7E9B8A32B44015E001169BE /* Test1.swift in Sources */,
 				F7F7EE3D2B066B8400817353 /* ListingDetail.swift in Sources */,
 				F7E9B8302B30E9AB001169BE /* TabBarView.swift in Sources */,
+				B30EA0932EAFCC4300CC2EDD /* SizeConstants.swift in Sources */,
 				FA62333E2BC86309008CBD84 /* Bindings.swift in Sources */,
 				F7F7EE142B061A2600817353 /* ProfileOption.swift in Sources */,
 				CF478BE32E8E9B0D004DA93F /* DealRowView.swift in Sources */,
@@ -868,13 +885,16 @@
 				F7F7EE542B07206400817353 /* OrderRow.swift in Sources */,
 				FA2EF0E42C020C0900699480 /* SupportView.swift in Sources */,
 				F7F7EE052B06095900817353 /* Login.swift in Sources */,
+				B30EA09C2EB0F68A00CC2EDD /* TabItemView.swift in Sources */,
 				FA6233492BC99D3A008CBD84 /* String+Extension.swift in Sources */,
 				216CF48E2BDB77B500AF6A9E /* MyListing.swift in Sources */,
 				F7E9B8362B30EA15001169BE /* UserProfileHome.swift in Sources */,
 				F7F7EE582B07306300817353 /* DestinationSearchView.swift in Sources */,
+				B30EA09A2EB0F61500CC2EDD /* TabItem.swift in Sources */,
 				F7E9B83D2B30EAB2001169BE /* ReviewCollection.swift in Sources */,
 				F7E9B8412B319E03001169BE /* Feedback.swift in Sources */,
 				F7F7EE392B066A2F00817353 /* ListingitemView.swift in Sources */,
+				B30EA09E2EB0F6AA00CC2EDD /* CenterButtonView.swift in Sources */,
 				F7E9B81A2B2DF15E001169BE /* ListingItem.swift in Sources */,
 				CF478BDE2E8E9078004DA93F /* AuthButtonLabel.swift in Sources */,
 				F7E9B82D2B30E970001169BE /* ProfileView.swift in Sources */,
@@ -1080,7 +1100,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Boxx/Preview Content\"";
-				DEVELOPMENT_TEAM = QN6RC23FCQ;
+				DEVELOPMENT_TEAM = J3642PFHD3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Boxx/Info.plist;
@@ -1113,7 +1133,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Boxx/Preview Content\"";
-				DEVELOPMENT_TEAM = QN6RC23FCQ;
+				DEVELOPMENT_TEAM = J3642PFHD3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Boxx/Info.plist;

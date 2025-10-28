@@ -56,12 +56,15 @@ struct HomeView: View {
                     }
                 }
             }
-            .padding(.vertical)
-            .padding(.horizontal, 10)
+            .background(Color.white)
+            //MARK: убрал отступы для корректного отображения цвета
+//            .padding(.vertical)
+//            .padding(.horizontal, 10)
             .onAppear {
                 viewModel.orderDescription.forEach({print($0)})
             }
     }
+      
 }
 
 // TripItem removed in favor of using ListingItem

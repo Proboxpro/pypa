@@ -24,7 +24,9 @@ struct YouAreLeavingView: View {
                 
                 ScrollView() {
                     ForEach(viewModel.myorder) { item in
-                        TripCardView(width: screenWidth - 20, item: item)
+                        NavigationLink(destination: CreateDealView(item: item).navigationBarBackButtonHidden(true)) {
+                            TripCardView(width: screenWidth - 20, item: item)
+                        }
                     }
                 }
             }

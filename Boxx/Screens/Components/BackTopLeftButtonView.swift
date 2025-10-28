@@ -32,6 +32,31 @@ struct BackTopLeftButtonView: View {
     }
 }
 
+struct BackTopLeftWhiteButtonView: View {
+    // dismiss передаём через Environment
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .foregroundColor(.black)
+                }
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 10)
+        .navigationBarBackButtonHidden()
+    }
+}
+
 struct AskQuestionButton: View {
     var body: some View {
         HStack {
