@@ -38,8 +38,7 @@ struct DatePickerView: View {
             
             // Сам календарь, показывается при isPickerPresented = true
             if isPickerPresented {
-                DatePicker(
-                    "Выберите дату и время",
+                DatePicker("",
                     selection: $selectedDate,
                     displayedComponents: [.date, .hourAndMinute]
                 )
@@ -51,6 +50,7 @@ struct DatePickerView: View {
             
 //            Spacer()
         }
+        .allowsHitTesting(true)
 //        .padding()
     }
 }
@@ -67,4 +67,8 @@ struct BaseTitle: View {
         Text(text)
             .font(.system(size: 22, weight: .bold))
     }
+}
+
+#Preview {
+    DatePickerView(isPickerPresented: .constant(true))
 }

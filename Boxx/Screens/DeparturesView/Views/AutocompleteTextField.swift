@@ -22,7 +22,7 @@ struct AutocompleteTextField: View {
                         .stroke(Color.gray.opacity(0.6), lineWidth: 1)
                 )
 //                .padding(.horizontal)
-                .zIndex(1)
+//                .zIndex(1)
             
             if !text.isEmpty {
 //                let filtered = suggestions.prefix(1)
@@ -46,7 +46,7 @@ struct AutocompleteTextField: View {
                 }
             }
         }
-        .animation(.easeInOut, value: text.isEmpty)
+        .animation(.bouncy, value: text.isEmpty)
 //        .background(Color.green)
         .allowsHitTesting(true)
     }

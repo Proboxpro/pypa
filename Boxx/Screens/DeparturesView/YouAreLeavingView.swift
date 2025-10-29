@@ -13,23 +13,37 @@ struct YouAreLeavingView: View {
     var body: some View {
         
         ZStack {
-            BackTopLeftButtonView()
-            AskQuestionButton()
-            
-            HStack {
-                BaseTitle("Посылки")
+            VStack {
+                ZStack {
+                    
+                    BackTopLeftButtonView()
+                    AskQuestionButton()
+                    
+                    HStack {
+                        BaseTitle("Посылки")
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .offset(y: 45)
+                    
+                }
                 Spacer()
             }
-            .padding(.horizontal)
-            .offset(y: 45)
+            .zIndex(1)
+//            .background(Color.green)
+            
+            //        Spacer()
+            
+            //        Text("You are sending")
+            VStack {
+                DeliveryFormView()
+                    .ignoresSafeArea(.keyboard)
+                    .offset(y: 60)
+                Spacer()
+            }
+            .zIndex(2)
+//            .background(Color.orange)
         }
-        
-        //        Spacer()
-        
-        //        Text("You are sending")
-        DeliveryFormView()
-            .ignoresSafeArea(.keyboard)
-//        Spacer()
     }
 }
 
@@ -80,7 +94,7 @@ struct DeliveryFormView: View {
                 Spacer()
             }
             
-            VStack(spacing: 150) {
+            VStack(spacing: 100) {
                 Spacer()
                 
                 chooseTransport()
@@ -91,11 +105,12 @@ struct DeliveryFormView: View {
                 })
                 .offset(y: isPickerPresented ? 150 : 0)
             }
+            .offset(y: -60)
             .opacity(isPickerPresented ? 0 : 1)
             .animation(.easeInOut, value: isPickerPresented)
         }
     }
-    @State var calendarSelected: Bool = false
+//    @State var calendarSelected: Bool = false
     
     @MainActor
     func firstScreen()-> some View{
@@ -103,13 +118,14 @@ struct DeliveryFormView: View {
             AutocompleteTextField()
             AutocompleteTextField()
             DatePickerView(isPickerPresented: $isPickerPresented)
-                .onTapGesture {
-                    calendarSelected.toggle()
-                }
+//                .onTapGesture {
+//                    calendarSelected.toggle()
+//                }
 //                .offset(y: -10)
             Spacer()
         }
-        .padding(.top, 35)
+//        .background(Color.orange)
+        .padding(.top, 40)
         .padding(.horizontal)
     }
     
