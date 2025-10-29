@@ -10,7 +10,11 @@ import SwiftUI
 struct AutocompleteTextField: View {
     var placeholder: String
     
-    @Binding var text: String
+//    @FocusState var focus: Bool
+    
+    @Binding var textToSave: String
+    @State var text: String = ""
+    
     var suggestions : [String]
     @State private var selected = false
 
@@ -30,6 +34,7 @@ struct AutocompleteTextField: View {
                         ForEach(filtered, id: \.self) { item in
                             Button {
                                 text = item
+                                textToSave = text
                                 selected = true
                                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             } label: {
@@ -43,6 +48,12 @@ struct AutocompleteTextField: View {
                 }
             }
         }
+//        .focused($focus)
+//        .onChange(of: focus) { newValue in
+//            if newValue == false && !selected {
+//                text = ""
+//            }
+//        }
         .onChange(of: text) { newValue in
             if newValue == "" {
                 selected = false

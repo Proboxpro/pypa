@@ -61,7 +61,7 @@ struct DeliveryFormView: View {
     @State private var from = ""
     @State private var to = ""
     @State private var date = Date()
-    @State private var selectedTransport: TransportType? = .plane
+    @State private var selectedTransport: TransportType = .plane
     
     @State private var descriptionText = ""
     @State private var pricePerKg = ""
@@ -96,13 +96,16 @@ struct DeliveryFormView: View {
                 Spacer()
             }
             
-            VStack(spacing: 60) {
+            VStack(spacing: 30 /*60*/) {
                 Spacer()
                 
                 if !showNext {
                     chooseTransport()
                         .offset(y: isPickerPresented ? 250 : 0)
                 }
+                
+                departureLabel()
+                
                 PypButtonRightImage(text: "ПУП", image: Image("chevron_right"), action: {
                     showNext.toggle()
                 })
@@ -119,13 +122,10 @@ struct DeliveryFormView: View {
     @MainActor
     func firstScreen()-> some View{
         VStack {
-            AutocompleteTextField(placeholder: "Откуда", text: $from, suggestions: testSuggestions)
-            AutocompleteTextField(placeholder: "Куда", text: $to, suggestions: testSuggestions)
+            AutocompleteTextField(placeholder: "Откуда", textToSave: $from, suggestions: testSuggestions)
+            AutocompleteTextField(placeholder: "Куда", textToSave: $to, suggestions: testSuggestions)
             DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
-            //                .onTapGesture {
-            //                    calendarSelected.toggle()
-            //                }
-            //                .offset(y: -10)
+            
             Spacer()
         }
         .onAppear {
@@ -136,6 +136,17 @@ struct DeliveryFormView: View {
         .padding(.horizontal)
     }
     
+    @MainActor
+    func departureLabel()-> some View {
+        VStack {
+            Text("откуда \(from)")
+            Text("куда \(to)")
+            Text("когда \(date)")
+            Text("на чем \(selectedTransport.rawValue)")
+            Text("описание \(descriptionText)")
+            Text("цена за кг \(pricePerKg)")
+        }
+    }
     
     @MainActor
     func secondScreen()-> some View {
@@ -143,6 +154,8 @@ struct DeliveryFormView: View {
             // Описание
             Text("Описание")
                 .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.black.opacity(0.8))
+            
             
             TextEditor(text: $descriptionText)
                 .frame(height: 80)
@@ -155,6 +168,7 @@ struct DeliveryFormView: View {
             // Стоимость кг
             Text("Стоимость кг.")
                 .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(Color.black.opacity(0.8))
             
             TextField("Введите сумму", text: $pricePerKg)
                 .keyboardType(.numberPad)
@@ -215,8 +229,7 @@ struct DeliveryFormView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 70, height: 70)
-                        //                                .font(.system(size: 40))
-                        //                                .foregroundColor(selectedTransport == type ? .blue : .gray)
+                        
                             .padding(10)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
