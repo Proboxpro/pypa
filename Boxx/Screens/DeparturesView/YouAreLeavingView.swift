@@ -55,7 +55,7 @@ struct DeliveryFormView: View {
     @State private var from = ""
     @State private var to = ""
     @State private var date = ""
-    @State private var selectedTransport: TransportType? = nil
+    @State private var selectedTransport: TransportType? = .plane
     
     enum TransportType: String, CaseIterable {
         case plane = "plane"
@@ -94,7 +94,7 @@ struct DeliveryFormView: View {
                 Spacer()
             }
             
-            VStack(spacing: 100) {
+            VStack(spacing: 60) {
                 Spacer()
                 
                 chooseTransport()

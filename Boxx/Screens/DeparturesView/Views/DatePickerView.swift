@@ -45,7 +45,7 @@ struct DatePickerView: View {
                 .datePickerStyle(.graphical)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
                 .padding(.horizontal)
-                .offset(y: -20)
+                .offset(y: -30)
             }
             
 //            Spacer()
