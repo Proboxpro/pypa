@@ -86,6 +86,12 @@ struct DeliveryFormView: View {
     
     var body: some View {
         ZStack {
+            Color.white.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPickerPresented = false
+                }
+            
             VStack(spacing: 20) {
                 if !showNext {
                     firstScreen()
@@ -130,6 +136,8 @@ struct DeliveryFormView: View {
     @MainActor
     func firstScreen()-> some View{
         VStack {
+            
+            
             AutocompleteTextField(placeholder: "Откуда", textToSave: $from, suggestions: testSuggestions)
             AutocompleteTextField(placeholder: "Куда", textToSave: $to, suggestions: testSuggestions)
             DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
@@ -234,13 +242,15 @@ struct DeliveryFormView: View {
         ZStack(alignment: .topLeading) {
             if descriptionText.isEmpty && isFocused == false {
                 Text(Constants.descriptionKey)
-                    .foregroundColor(.gray.opacity(0.5))
+                    .foregroundColor(.gray.opacity(0.4))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 16)
                     .zIndex(10)
+                    .font(.system(size: 16, weight: .regular))
             }
 
             TextEditor(text: $descriptionText)
+                .font(.system(size: 16, weight: .regular))
                 .frame(height: 80)
                 .padding(8)
                 .overlay(
