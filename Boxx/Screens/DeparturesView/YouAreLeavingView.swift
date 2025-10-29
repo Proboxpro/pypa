@@ -167,22 +167,23 @@ struct DeliveryFormView: View {
                 .foregroundStyle(Color.black.opacity(0.8))
             
             
-            TextEditor(text: $descriptionText)
-                .frame(height: 80)
-                .padding(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                )
-                .focused($isFocused)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Готово") {
-                            isFocused = false // скрыть клавиатуру
-                        }
-                    }
-                }
+//            TextEditor(text: $descriptionText)
+//                .frame(height: 80)
+//                .padding(8)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+//                )
+//                .focused($isFocused)
+//                .toolbar {
+//                    ToolbarItemGroup(placement: .keyboard) {
+//                        Spacer()
+//                        Button("Готово") {
+//                            isFocused = false // скрыть клавиатуру
+//                        }
+//                    }
+//                }
+            descriptionTextEditor()
             
             Text("Стоимость кг.")
                 .font(.system(size: 18, weight: .semibold))
@@ -229,6 +230,35 @@ struct DeliveryFormView: View {
         .padding()
     }
     
+    func descriptionTextEditor()-> some View {
+        ZStack(alignment: .topLeading) {
+            if descriptionText.isEmpty && isFocused == false {
+                Text(Constants.descriptionKey)
+                    .foregroundColor(.gray.opacity(0.5))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 16)
+                    .zIndex(10)
+            }
+
+            TextEditor(text: $descriptionText)
+                .frame(height: 80)
+                .padding(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                )
+                .focused($isFocused)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Готово") {
+                            isFocused = false
+                        }
+                    }
+                }
+        }
+    }
+    
     @MainActor
     func chooseTransport()-> some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -267,7 +297,7 @@ struct DeliveryFormView: View {
             showNext.toggle()
         } else if checkFormValidity() && to != from {
             viewModel.presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
-            await viewModel.uploadPostservice(cityTo: to, cityFrom: from, startdate: date, pricePerKillo: Double(pricePerKg) ?? 0.0, transport: selectedTransport.rawValue)
+            await viewModel.uploadPostservice(cityTo: to, cityFrom: from, startdate: date, pricePerKillo: Double(pricePerKg) ?? 0.0, transport: selectedTransport.rawValue, description: descriptionText)
         } else {
             viewModel.presentAlert(kind: .error, message: "❌ Некоторые поля заполнены некорректно")
         }
