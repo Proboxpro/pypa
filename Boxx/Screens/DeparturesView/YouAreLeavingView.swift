@@ -51,11 +51,19 @@ struct YouAreLeavingView: View {
 struct DeliveryFormView: View {
     
     @State private var isPickerPresented = false
+    @State var showNext: Bool = false
+    let presetPrices = [500, 2000, 4000]
     
+    //MARK: Info:
     @State private var from = ""
     @State private var to = ""
-    @State private var date = ""
+    @State private var date = Date()
     @State private var selectedTransport: TransportType? = .plane
+    
+    @State private var descriptionText = ""
+    @State private var pricePerKg = ""
+    @State private var selectedPrice: Int? = nil
+    
     
     enum TransportType: String, CaseIterable {
         case plane = "plane"
@@ -71,16 +79,6 @@ struct DeliveryFormView: View {
         }
     }
     
-    @State var showNext: Bool = false
-    
-    //MARK: - second screen
-    @State private var descriptionText = ""
-    @State private var pricePerKg = ""
-    @State private var selectedPrice: Int? = nil
-    
-    let presetPrices = [500, 2000, 4000]
-    
-    
     var body: some View {
         ZStack {
             VStack(spacing: 20) {
@@ -89,6 +87,7 @@ struct DeliveryFormView: View {
                         .ignoresSafeArea(.keyboard)
                 } else {
                     secondScreen()
+                        .offset(y: 10)
                 }
                 
                 Spacer()
@@ -97,9 +96,10 @@ struct DeliveryFormView: View {
             VStack(spacing: 60) {
                 Spacer()
                 
-                chooseTransport()
-//                    .opacity(isPickerPresented ? 0 : 1)
-                    .offset(y: isPickerPresented ? 250 : 0)
+                if !showNext {
+                    chooseTransport()
+                        .offset(y: isPickerPresented ? 250 : 0)
+                }
                 PypButtonRightImage(text: "ПУП", image: Image("chevron_right"), action: {
                     showNext.toggle()
                 })
@@ -116,9 +116,9 @@ struct DeliveryFormView: View {
     @MainActor
     func firstScreen()-> some View{
         VStack {
-            AutocompleteTextField(placeholder: "Куда", text: $to, suggestions: testSuggestions)
             AutocompleteTextField(placeholder: "Откуда", text: $from, suggestions: testSuggestions)
-            DatePickerView(isPickerPresented: $isPickerPresented)
+            AutocompleteTextField(placeholder: "Куда", text: $to, suggestions: testSuggestions)
+            DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
 //                .onTapGesture {
 //                    calendarSelected.toggle()
 //                }
