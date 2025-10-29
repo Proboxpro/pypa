@@ -154,6 +154,7 @@ struct DeliveryFormView: View {
             Text("описание \(descriptionText)")
             Text("цена за кг \(pricePerKg)")
         }
+        .font(.caption2)
     }
     
     @FocusState private var isFocused: Bool
