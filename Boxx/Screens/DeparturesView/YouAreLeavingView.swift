@@ -119,7 +119,7 @@ struct DeliveryFormView: View {
             .animation(.easeInOut, value: isPickerPresented)
         }
         .onChange(of: viewModel.isAlertPresented) { _, newValue in
-            if newValue == false {
+            if newValue == false && checkFormValidity() && to != from {
                 dismiss()
             }
         }
