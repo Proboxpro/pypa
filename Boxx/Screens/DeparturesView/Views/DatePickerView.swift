@@ -1,5 +1,5 @@
 //
-//  CalendarView.swift
+//  DatePickerView.swift
 //  Boxx
 //
 //  Created by namerei on 29.10.2025.
@@ -22,7 +22,7 @@ struct DatePickerView: View {
             }) {
                 HStack {
                     Text("Когда:")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.gray.opacity(0.7))
                     Spacer()
                     Text(selectedDate.formatted(date: .abbreviated, time: .shortened))
                         .foregroundColor(.blue)
@@ -30,10 +30,10 @@ struct DatePickerView: View {
                 .frame(maxWidth: .infinity) // ← растягивает на всю ширину
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 14)
                         .stroke(Color.gray, lineWidth: 1)
                 )
-                .cornerRadius(16)
+                .cornerRadius(14)
             }
             
             // Сам календарь, показывается при isPickerPresented = true
@@ -45,12 +45,13 @@ struct DatePickerView: View {
                 )
                 .datePickerStyle(.graphical)
                 .transition(.opacity.combined(with: .move(edge: .bottom)))
-                .padding()
+                .padding(.horizontal)
+                .offset(y: -20)
             }
             
-            Spacer()
+//            Spacer()
         }
-        .padding()
+//        .padding()
     }
 }
 

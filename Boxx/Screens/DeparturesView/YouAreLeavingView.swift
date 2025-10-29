@@ -100,12 +100,16 @@ struct DeliveryFormView: View {
     @MainActor
     func firstScreen()-> some View{
         VStack {
+            AutocompleteTextField()
+            AutocompleteTextField()
             DatePickerView(isPickerPresented: $isPickerPresented)
                 .onTapGesture {
                     calendarSelected.toggle()
                 }
+//                .offset(y: -10)
             Spacer()
         }
+        .padding(.top, 35)
         .padding(.horizontal)
     }
     
@@ -210,4 +214,8 @@ struct DeliveryFormView: View {
 
 #Preview {
     DeliveryFormView()
+}
+
+#Preview {
+    YouAreLeavingView().environmentObject(AuthViewModel())
 }
