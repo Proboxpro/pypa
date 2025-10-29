@@ -9,6 +9,7 @@ import SwiftUI
 
 struct YouAreLeavingView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @State var showNext: Bool = false
     
     var body: some View {
         
@@ -16,7 +17,7 @@ struct YouAreLeavingView: View {
             VStack {
                 ZStack {
                     
-                    BackTopLeftButtonView()
+                    BackTopLeftButtonView(showNext: $showNext)
                     AskQuestionButton()
                     
                     HStack {
@@ -36,7 +37,7 @@ struct YouAreLeavingView: View {
             
             //        Text("You are sending")
             VStack {
-                DeliveryFormView()
+                DeliveryFormView(showNext: $showNext)
                     .ignoresSafeArea(.keyboard)
                     .offset(y: 60)
                 Spacer()
@@ -49,9 +50,11 @@ struct YouAreLeavingView: View {
 
 
 struct DeliveryFormView: View {
+    @EnvironmentObject var viewModel: AuthViewModel
     
+    @Binding var showNext: Bool
     @State private var isPickerPresented = false
-    @State var showNext: Bool = false
+    
     let presetPrices = [500, 2000, 4000]
     
     //MARK: Info:
@@ -111,7 +114,7 @@ struct DeliveryFormView: View {
         }
     }
 //    @State var calendarSelected: Bool = false
-    @State private var testSuggestions : [String] = ["v1", "v2", "v3", "v4", "v5"]
+    @State private var testSuggestions : [String] = []
     
     @MainActor
     func firstScreen()-> some View{
@@ -119,11 +122,14 @@ struct DeliveryFormView: View {
             AutocompleteTextField(placeholder: "Откуда", text: $from, suggestions: testSuggestions)
             AutocompleteTextField(placeholder: "Куда", text: $to, suggestions: testSuggestions)
             DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
-//                .onTapGesture {
-//                    calendarSelected.toggle()
-//                }
-//                .offset(y: -10)
+            //                .onTapGesture {
+            //                    calendarSelected.toggle()
+            //                }
+            //                .offset(y: -10)
             Spacer()
+        }
+        .onAppear {
+            testSuggestions = viewModel.city.compactMap({$0.name})
         }
 //        .background(Color.orange)
         .padding(.top, 40)
@@ -133,13 +139,13 @@ struct DeliveryFormView: View {
     
     @MainActor
     func secondScreen()-> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 15) {
             // Описание
             Text("Описание")
                 .font(.system(size: 18, weight: .semibold))
             
             TextEditor(text: $descriptionText)
-                .frame(height: 100)
+                .frame(height: 80)
                 .padding(8)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
@@ -230,7 +236,7 @@ struct DeliveryFormView: View {
 
 
 #Preview {
-    DeliveryFormView()
+    DeliveryFormView(showNext: .constant(false))
 }
 
 #Preview {

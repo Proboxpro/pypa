@@ -205,7 +205,7 @@ struct Detail : View {
                         Text ("Укажите дату")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        VStack{
+                        VStack {
                             DatePicker("Дата", selection:$startdate)
                                 .datePickerStyle(.wheel)
                                 .frame(maxHeight:200)
@@ -331,7 +331,6 @@ struct Detail : View {
 //        DispatchQueue.global().async {
 //            viewModel.myOrder()
 //        }
-        
         
         print("MYORDER:", viewModel.myorder.map({$0.cityFrom + " " + $0.cityTo}))
     }

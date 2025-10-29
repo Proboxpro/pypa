@@ -61,7 +61,8 @@ struct MainTabBar: View {
                         case "Главная":
                             HomeView()
                         case "Партнёры":
-                            TestView()
+//                            TestView()
+                            Search()
                         case "Профиль":
                             Profile()
                         default:

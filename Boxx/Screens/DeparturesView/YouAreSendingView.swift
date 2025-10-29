@@ -15,7 +15,7 @@ struct YouAreSendingView: View {
     var body: some View {
         VStack {
             ZStack {
-                BackTopLeftButtonView()
+                BackTopLeftButtonView(showNext: .constant(false))
                 AskQuestionButton()
             }
             

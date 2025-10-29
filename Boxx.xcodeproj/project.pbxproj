@@ -361,8 +361,9 @@
 				CF478BE22E8E9B0D004DA93F /* HomeView */,
 				F7F7EE032B06065D00817353 /* Profile */,
 				F7F7EDFF2B06051100817353 /* Components */,
-				F7F7EDFE2B06050E00817353 /* Core */,
+				FAB339612BE0E6C300144C14 /* SumSub */,
 				F7F7EDFD2B06050B00817353 /* Auth */,
+				F7F7EDFE2B06050E00817353 /* Core */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -540,7 +541,6 @@
 		F7F7EDFE2B06050E00817353 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				FAB339612BE0E6C300144C14 /* SumSub */,
 				F7F7EE502B07202700817353 /* Message */,
 				F7F7EE3E2B066BC700817353 /* Explore */,
 			);
