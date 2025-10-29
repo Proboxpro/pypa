@@ -136,8 +136,6 @@ struct DeliveryFormView: View {
     @MainActor
     func firstScreen()-> some View{
         VStack {
-            
-            
             AutocompleteTextField(placeholder: "Откуда", textToSave: $from, suggestions: testSuggestions)
             AutocompleteTextField(placeholder: "Куда", textToSave: $to, suggestions: testSuggestions)
             DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
@@ -174,23 +172,6 @@ struct DeliveryFormView: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.black.opacity(0.8))
             
-            
-//            TextEditor(text: $descriptionText)
-//                .frame(height: 80)
-//                .padding(8)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 10)
-//                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-//                )
-//                .focused($isFocused)
-//                .toolbar {
-//                    ToolbarItemGroup(placement: .keyboard) {
-//                        Spacer()
-//                        Button("Готово") {
-//                            isFocused = false // скрыть клавиатуру
-//                        }
-//                    }
-//                }
             descriptionTextEditor()
             
             Text("Стоимость кг.")
@@ -242,7 +223,7 @@ struct DeliveryFormView: View {
         ZStack(alignment: .topLeading) {
             if descriptionText.isEmpty && isFocused == false {
                 Text(Constants.descriptionKey)
-                    .foregroundColor(.gray.opacity(0.4))
+                    .foregroundColor(.gray.opacity(0.5))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 16)
                     .zIndex(10)
