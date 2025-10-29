@@ -17,24 +17,37 @@ struct YouAreLeavingView: View {
             AskQuestionButton()
             
             HStack {
-                Text("Посылки")
-                    .font(.system(size: 22, weight: .bold))
+                BaseTitle("Посылки")
                 Spacer()
             }
             .padding(.horizontal)
             .offset(y: 45)
         }
         
-        Spacer()
+//        Spacer()
         
 //        Text("You are sending")
         DeliveryFormView()
             .ignoresSafeArea(.keyboard)
-        Spacer()
+//        Spacer()
     }
 }
 
 
+import SwiftUI
+
+struct BaseTitle: View {
+    let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    var body: some View {
+        Text(text)
+            .font(.system(size: 22, weight: .bold))
+    }
+}
 
 
 
@@ -69,45 +82,34 @@ struct DeliveryFormView: View {
     
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Заголовок
-//            HStack {
-//                Text("Посылки")
-//                    .font(.system(size: 22, weight: .bold))
-//                Spacer()
-//            }
-//            .padding(.horizontal)
-//            Spacer()
-
-            // Поля ввода
-            if !showNext {
-                firstScreen()
-                    .ignoresSafeArea(.keyboard)
-            } else {
-                secondScreen()
+        ZStack {
+            VStack(spacing: 20) {
+                // Заголовок
+                //            HStack {
+                //                Text("Посылки")
+                //                    .font(.system(size: 22, weight: .bold))
+                //                Spacer()
+                //            }
+                //            .padding(.horizontal)
+                //            Spacer()
+                
+                // Поля ввода
+                if !showNext {
+                    firstScreen()
+                        .ignoresSafeArea(.keyboard)
+                } else {
+                    secondScreen()
+                }
+                
+                Spacer()
             }
-
-            Spacer()
-
-            // Кнопка внизу
-//            Button {
-////                print("Нажали ПУП")
-//                showNext.toggle()
-//            } label: {
-//                HStack {
-//                    Text("ПУП")
-//                        .fontWeight(.semibold)
-//                    Image(systemName: "chevron.right")
-//                        .font(.system(size: 16, weight: .semibold))
-//                }
-//                .foregroundColor(.white)
-//                .frame(maxWidth: .infinity)
-//                .padding()
-//                .background(Color.green)
-//                .cornerRadius(12)
-//            }
-//            .padding(.horizontal)
-//            .padding(.bottom, 30)
+            
+            VStack {
+                Spacer()
+                PypButtonRightImage(text: "ПУП", image: Image("chevron_right"), action: {
+                    showNext.toggle()
+                })
+            }
         }
     }
     @State var calendarSelected: Bool = false
