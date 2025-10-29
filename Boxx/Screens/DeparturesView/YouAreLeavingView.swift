@@ -51,6 +51,7 @@ struct YouAreLeavingView: View {
 
 struct DeliveryFormView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @Environment(\.dismiss) private var dismiss
     
     @Binding var showNext: Bool
     @State private var isPickerPresented = false
@@ -96,7 +97,7 @@ struct DeliveryFormView: View {
                 Spacer()
             }
             
-            VStack(spacing: 30 /*60*/) {
+            VStack(spacing: 10 /*60*/) {
                 Spacer()
                 
                 if !showNext {
@@ -107,7 +108,7 @@ struct DeliveryFormView: View {
                 departureLabel()
                 
                 PypButtonRightImage(text: "ПУП", image: Image("chevron_right"), action: {
-                    showNext.toggle()
+                    handlePypAction()
                 })
                 .offset(y: isPickerPresented ? 150 : 0)
             }
@@ -118,6 +119,26 @@ struct DeliveryFormView: View {
     }
 //    @State var calendarSelected: Bool = false
     @State private var testSuggestions : [String] = []
+    
+    //MARK: - action
+    private func handlePypAction() {
+        if !showNext {
+            showNext.toggle()
+        } else if checkFormValidity() && to != from {
+            viewModel.presentAlert(kind: .success, message: "Обьявление успешно создано!")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                viewModel.isAlertPresented = false
+                dismiss()
+            })
+        } else {
+            viewModel.presentAlert(kind: .error, message: "Некоторые поля заполнены некорректно")
+        }
+    }
+    
+    private func checkFormValidity() -> Bool {
+        !to.isEmpty && !from.isEmpty
+    }
     
     @MainActor
     func firstScreen()-> some View{

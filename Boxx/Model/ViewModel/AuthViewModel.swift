@@ -68,12 +68,14 @@ class AuthViewModel: ObservableObject {
     @Published var activeAlert: AuthAlert?
     @Published var isAlertPresented: Bool = false
     @Published var showExitFromAccAlert: Bool = false
+    
+    @Published var showErrorDepartureAlert: Bool = false
 
     func presentAlert(kind: AuthAlert.Kind = .info, title: String? = nil, message: String) {
         let defaultTitle: String
         switch kind {
         case .info: defaultTitle = "Сообщение"
-        case .success: defaultTitle = "Успех"
+        case .success: defaultTitle = "Успешно"
         case .warning: defaultTitle = "Внимание"
         case .error: defaultTitle = "Ошибка"
         }
