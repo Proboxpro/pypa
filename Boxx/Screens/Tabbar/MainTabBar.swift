@@ -55,12 +55,14 @@ struct MainTabBar: View {
                         switch selectedTab.title {
                         case "Посылки":
                             DeparturesView()
+                                .ignoresSafeArea(.keyboard)
                         case "Сделки":
                             OrdersList()
                         case "Главная":
                             HomeView()
                         case "Партнёры":
-                            TestView()
+//                            TestView()
+                            Search()
                         case "Профиль":
                             Profile()
                         default:

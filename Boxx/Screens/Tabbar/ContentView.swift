@@ -16,29 +16,32 @@ struct ContentView: View {
             //DEBUG: _
             if viewModel.userSession != nil {
                 MainTabBar()
+                    .ignoresSafeArea(.keyboard)
                     .environmentObject(viewModel)
-//                    .alert("Выйти из аккаунта?", isPresented: $viewModel.showExitFromAccAlert) {
-//                        Button("Отмена", role: .cancel) {
-//                            viewModel.dismissAlert()
-//                        }
-//                        Button("Да", role: .destructive) {
-//                            viewModel.signOut()
-//                        }
+                
+//                    .alert(viewModel.activeAlert?.title ?? "Сообщение", isPresented: $viewModel.isAlertPresented) {
+//                        Button("OK") { viewModel.dismissAlert() }
 //                    } message: {
-//                        Text("Вы уверены, что хотите выйти из аккаунта?")
+//                        Text(viewModel.activeAlert?.message ?? "")
 //                    }
+                
                     .confirmationDialog("Вы уверены, что хотите выйти из аккаунта?", isPresented: $viewModel.showExitFromAccAlert, titleVisibility: .visible) {
                         Button("Да", role: .destructive) { viewModel.signOut() } // слева
                         Button("Отмена", role: .cancel) { viewModel.dismissAlert() } // справа
                     }
             } else {
                 StartView()
-                    .alert(viewModel.activeAlert?.title ?? "Сообщение", isPresented: $viewModel.isAlertPresented) {
-                        Button("OK") { viewModel.dismissAlert() }
-                    } message: {
-                        Text(viewModel.activeAlert?.message ?? "")
-                    }
+//                    .alert(viewModel.activeAlert?.title ?? "Сообщение", isPresented: $viewModel.isAlertPresented) {
+//                        Button("OK") { viewModel.dismissAlert() }
+//                    } message: {
+//                        Text(viewModel.activeAlert?.message ?? "")
+//                    }
             }
+        }
+        .alert(viewModel.activeAlert?.title ?? "Сообщение", isPresented: $viewModel.isAlertPresented) {
+            Button("OK") { viewModel.dismissAlert() }
+        } message: {
+            Text(viewModel.activeAlert?.message ?? "")
         }
     }
 }

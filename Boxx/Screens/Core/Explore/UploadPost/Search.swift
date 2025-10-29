@@ -155,8 +155,8 @@ struct Detail : View {
     @State private var selectedOption: SearchOptions = .location
     
     var filtereduser: [City] {
-        guard !cityTo.isEmpty else { return viewModel.city}
-        return viewModel.city.filter{ $0.name.localizedCaseInsensitiveContains (cityTo) }
+        guard !cityTo.isEmpty else { return viewModel.allPosibleCityes}
+        return viewModel.allPosibleCityes.filter{ $0.name.localizedCaseInsensitiveContains (cityTo) }
     }
     
     var body : some View{
@@ -205,7 +205,7 @@ struct Detail : View {
                         Text ("Укажите дату")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        VStack{
+                        VStack {
                             DatePicker("Дата", selection:$startdate)
                                 .datePickerStyle(.wheel)
                                 .frame(maxHeight:200)
@@ -258,7 +258,7 @@ struct Detail : View {
                         .foregroundStyle(Color(.systemGray4))
                 }
                 if self.cityTo != ""{
-                    if  self.viewModel.city.filter({$0.name.lowercased().contains(self.cityTo.lowercased())}).count == 0 {
+                    if  self.viewModel.allPosibleCityes.filter({$0.name.lowercased().contains(self.cityTo.lowercased())}).count == 0 {
                         VStack(alignment: .leading){
                             Text("Не найден")
                         }
@@ -332,7 +332,6 @@ struct Detail : View {
 //            viewModel.myOrder()
 //        }
         
-        
         print("MYORDER:", viewModel.myorder.map({$0.cityFrom + " " + $0.cityTo}))
     }
     
@@ -350,8 +349,6 @@ struct Detail : View {
                 print(error.localizedDescription)
             }
         }
-        
-        
     }
     
 }
