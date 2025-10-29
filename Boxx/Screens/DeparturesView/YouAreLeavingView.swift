@@ -57,7 +57,8 @@ struct DeliveryFormView: View {
     @State private var isPickerPresented = false
     
     let presetPrices = [500, 2000, 4000]
-    
+    @State private var testSuggestions : [String] = []
+
     //MARK: Info:
     @State private var from = ""
     @State private var to = ""
@@ -124,30 +125,7 @@ struct DeliveryFormView: View {
             }
         }
     }
-//    @State var calendarSelected: Bool = false
-    @State private var testSuggestions : [String] = []
     
-    //MARK: - action
-    private func handlePypAction() async {
-        if !showNext {
-            showNext.toggle()
-        } else if checkFormValidity() && to != from {
-            viewModel.presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
-            
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
-//                viewModel.isAlertPresented = false
-//                dismiss()
-//            })
-            
-            await viewModel.uploadPostservice(cityTo: to, cityFrom: from, startdate: date, pricePerKillo: Double(pricePerKg) ?? 0.0)
-        } else {
-            viewModel.presentAlert(kind: .error, message: "❌ Некоторые поля заполнены некорректно")
-        }
-    }
-    
-    private func checkFormValidity() -> Bool {
-        !to.isEmpty && !from.isEmpty
-    }
     
     @MainActor
     func firstScreen()-> some View{
@@ -178,10 +156,11 @@ struct DeliveryFormView: View {
         }
     }
     
+    @FocusState private var isFocused: Bool
+    
     @MainActor
     func secondScreen()-> some View {
         VStack(alignment: .leading, spacing: 15) {
-            // Описание
             Text("Описание")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.black.opacity(0.8))
@@ -194,21 +173,30 @@ struct DeliveryFormView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
                 )
+                .focused($isFocused)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Готово") {
+                            isFocused = false // скрыть клавиатуру
+                        }
+                    }
+                }
             
-            // Стоимость кг
             Text("Стоимость кг.")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.black.opacity(0.8))
             
             TextField("Введите сумму", text: $pricePerKg)
                 .keyboardType(.numberPad)
+                .focused($isFocused)
+//                .submitLabel(.done)
                 .padding(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
                 )
             
-            // Кнопки с вариантами
             HStack(spacing: 30) {
                 ForEach(presetPrices, id: \.self) { price in
                     Button {
@@ -224,7 +212,6 @@ struct DeliveryFormView: View {
                         .padding(.horizontal, 20)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                            //                                    .fill(Int(pricePerKg) == price ? Color.blue.opacity(0.2) : Color.clear)
                                 .fill(Color.clear)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
@@ -233,15 +220,13 @@ struct DeliveryFormView: View {
                         )
                     }
                     .foregroundColor(Int(pricePerKg) == price ? .blue.opacity(0.6) : .gray)
-                    //                        .foregroundColor(.gray)
                 }
-                }
-                .frame(maxWidth: .infinity)
-                
-//                Spacer()
             }
-            .padding()
+            .frame(maxWidth: .infinity)
+            
         }
+        .padding()
+    }
     
     @MainActor
     func chooseTransport()-> some View {
@@ -272,11 +257,31 @@ struct DeliveryFormView: View {
         }
         .padding(.top, 10)
         
-//    }
+        //    }
+    }
+    
+    //MARK: - action
+    private func handlePypAction() async {
+        if !showNext {
+            showNext.toggle()
+        } else if checkFormValidity() && to != from {
+            viewModel.presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
+            await viewModel.uploadPostservice(cityTo: to, cityFrom: from, startdate: date, pricePerKillo: Double(pricePerKg) ?? 0.0, transport: selectedTransport.rawValue)
+        } else {
+            viewModel.presentAlert(kind: .error, message: "❌ Некоторые поля заполнены некорректно")
+        }
+    }
+    
+    private func checkFormValidity() -> Bool {
+        !to.isEmpty && !from.isEmpty
+    }
 }
 
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }
-
 
 #Preview {
     DeliveryFormView(showNext: .constant(false))

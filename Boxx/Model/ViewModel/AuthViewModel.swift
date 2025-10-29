@@ -911,7 +911,7 @@ class AuthViewModel: ObservableObject {
     
     
     //MARK: - DeparturesView:
-    func uploadPostservice(cityTo: String, cityFrom: String,/*data: City,*/ startdate: Date, pricePerKillo: Double) async
+    func uploadPostservice(cityTo: String, cityFrom: String,/*data: City,*/ startdate: Date, pricePerKillo: Double, transport: String) async
     {
         guard let uid = currentUser?.id else {return}
         let ownerUid = uid
@@ -927,7 +927,7 @@ class AuthViewModel: ObservableObject {
 //        }
         guard let city = allPosibleCityes.filter({$0.name == cityFrom}).first else { return }
         
-        await addCustomer(ownerUid: ownerUid, ownerName: ownerName, pricePerKillo: pricePerKillo, data: city, cityTo: cityTo, startdate: startdate, imageUrl: imageUrl)
+        await addCustomer(ownerUid: ownerUid, ownerName: ownerName, pricePerKillo: pricePerKillo, data: city, cityTo: cityTo, startdate: startdate, imageUrl: imageUrl, transport: transport)
     }
     
     func addCustomer(
@@ -937,7 +937,8 @@ class AuthViewModel: ObservableObject {
         data: City, // замени на свою структуру
         cityTo: String,
         startdate: Date,
-        imageUrl: String?
+        imageUrl: String?,
+        transport: String
     ) async {
         let db = Firestore.firestore()
         let doc = db.collection("Customers").document()
@@ -952,7 +953,8 @@ class AuthViewModel: ObservableObject {
                 "cityTo": cityTo,
                 "startdate": startdate.convertToMonthYearFormat(),
                 "imageUrls": data.reg,
-                "imageUrl": imageUrl ?? "-"
+                "imageUrl": imageUrl ?? "-",
+                "transport": transport
             ])
             presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
             DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {

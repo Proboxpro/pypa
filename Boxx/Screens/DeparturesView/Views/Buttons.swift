@@ -47,7 +47,7 @@ struct PypLabelRightImage: View {
     var body: some View {
             HStack {
                 Text(text)
-                    .font(.title2)
+                    .font(.title3)
                     .fontWeight(.semibold)
                 
                 if let image = image {
