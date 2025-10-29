@@ -89,7 +89,7 @@ struct DeliveryFormView: View {
             Color.white.opacity(0.3)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    isPickerPresented = false
+                    isPickerPresented = false; focusState = false
                 }
             
             VStack(spacing: 20) {
@@ -130,15 +130,28 @@ struct DeliveryFormView: View {
                 dismiss()
             }
         }
+        .onChange(of: focusState) { newValue, _ in
+            if focusState && isPickerPresented {
+                isPickerPresented = false
+            }
+        }
+        .onChange(of: isPickerPresented) { newValue, _ in
+            focusState = false
+        }
     }
     
+    @FocusState var focusState: Bool
     
     @MainActor
     func firstScreen()-> some View{
         VStack {
             AutocompleteTextField(placeholder: "Откуда", textToSave: $from, suggestions: testSuggestions)
+                .focused($focusState)
             AutocompleteTextField(placeholder: "Куда", textToSave: $to, suggestions: testSuggestions)
+                .focused($focusState)
+
             DatePickerView(isPickerPresented: $isPickerPresented, selectedDate: $date)
+//                .disabled(focusState)
             
             Spacer()
         }
