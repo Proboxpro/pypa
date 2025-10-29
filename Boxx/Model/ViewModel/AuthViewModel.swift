@@ -34,7 +34,7 @@ class AuthViewModel: ObservableObject {
     @Published var order: Order?
     @Published var user: [User] = []
     @Published var users: [User] = []
-    @Published var city: [City] = []
+    @Published var allPosibleCityes: [City] = []
     
     @Published var orderDescription: [OrderDescriptionItem] = []
     @Published var ownerOrderDescription: [OrderDescriptionItem] = []
@@ -246,7 +246,7 @@ class AuthViewModel: ObservableObject {
                     let reg = data["reg"]as? String ?? ""
                     let city = City(id: id, name: name, reg: reg)
                     
-                    self.city.append(city)
+                    self.allPosibleCityes.append(city)
                 }
             }
         }
@@ -908,5 +908,60 @@ class AuthViewModel: ObservableObject {
     
     //MARK: - OrderStatus handling message screen
     @Published var orderStatus: OrderStatus = .isInDelivery
+    
+    
+    //MARK: - DeparturesView:
+    func uploadPostservice(cityTo: String, cityFrom: String,/*data: City,*/ startdate: Date, pricePerKillo: Double) async
+    {
+        guard let uid = currentUser?.id else {return}
+        let ownerUid = uid
+        let ownerName = currentUser?.login
+        let imageUrl = currentUser?.imageUrl
+        
+        
+//        let db = Firestore.firestore()
+//        db.collection("Customers").document().setData([ "id": NSUUID().uuidString,  "ownerUid": ownerUid, "ownerName": ownerName ?? "-", "pricePerKillo": pricePerKillo, "cityFrom": data.name, "cityTo": cityTo, "startdate":startdate.convertToMonthYearFormat(), "imageUrls": data.reg, "imageUrl": imageUrl ?? "-"]) {error in
+//            if let error = error {
+//                print(error.localizedDescription)
+//            }
+//        }
+        guard let city = allPosibleCityes.filter({$0.name == cityFrom}).first else { return }
+        
+        await addCustomer(ownerUid: ownerUid, ownerName: ownerName, pricePerKillo: pricePerKillo, data: city, cityTo: cityTo, startdate: startdate, imageUrl: imageUrl)
+    }
+    
+    func addCustomer(
+        ownerUid: String,
+        ownerName: String?,
+        pricePerKillo: Double,
+        data: City, // замени на свою структуру
+        cityTo: String,
+        startdate: Date,
+        imageUrl: String?
+    ) async {
+        let db = Firestore.firestore()
+        let doc = db.collection("Customers").document()
+        
+        do {
+            try await doc.setData([
+                "id": UUID().uuidString,
+                "ownerUid": ownerUid,
+                "ownerName": ownerName ?? "-",
+                "pricePerKillo": pricePerKillo,
+                "cityFrom": data.name,
+                "cityTo": cityTo,
+                "startdate": startdate.convertToMonthYearFormat(),
+                "imageUrls": data.reg,
+                "imageUrl": imageUrl ?? "-"
+            ])
+            presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                self.isAlertPresented = false
+            })
+                                          
+        } catch {
+            presentAlert(kind: .error, message: "❌ Firestore error: \(error.localizedDescription)")
+        }
+    }
 }
 

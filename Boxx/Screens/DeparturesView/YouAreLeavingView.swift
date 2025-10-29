@@ -108,7 +108,9 @@ struct DeliveryFormView: View {
                 departureLabel()
                 
                 PypButtonRightImage(text: "ПУП", image: Image("chevron_right"), action: {
-                    handlePypAction()
+                    Task {
+                       await handlePypAction()
+                    }
                 })
                 .offset(y: isPickerPresented ? 150 : 0)
             }
@@ -116,23 +118,30 @@ struct DeliveryFormView: View {
             .opacity(isPickerPresented ? 0 : 1)
             .animation(.easeInOut, value: isPickerPresented)
         }
+        .onChange(of: viewModel.isAlertPresented) { _, newValue in
+            if newValue == false {
+                dismiss()
+            }
+        }
     }
 //    @State var calendarSelected: Bool = false
     @State private var testSuggestions : [String] = []
     
     //MARK: - action
-    private func handlePypAction() {
+    private func handlePypAction() async {
         if !showNext {
             showNext.toggle()
         } else if checkFormValidity() && to != from {
-            viewModel.presentAlert(kind: .success, message: "Обьявление успешно создано!")
+            viewModel.presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
-                viewModel.isAlertPresented = false
-                dismiss()
-            })
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+//                viewModel.isAlertPresented = false
+//                dismiss()
+//            })
+            
+            await viewModel.uploadPostservice(cityTo: to, cityFrom: from, startdate: date, pricePerKillo: Double(pricePerKg) ?? 0.0)
         } else {
-            viewModel.presentAlert(kind: .error, message: "Некоторые поля заполнены некорректно")
+            viewModel.presentAlert(kind: .error, message: "❌ Некоторые поля заполнены некорректно")
         }
     }
     
@@ -150,7 +159,7 @@ struct DeliveryFormView: View {
             Spacer()
         }
         .onAppear {
-            testSuggestions = viewModel.city.compactMap({$0.name})
+            testSuggestions = viewModel.allPosibleCityes.compactMap({$0.name})
         }
 //        .background(Color.orange)
         .padding(.top, 40)
