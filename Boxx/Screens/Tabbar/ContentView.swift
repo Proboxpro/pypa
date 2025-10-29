@@ -16,6 +16,7 @@ struct ContentView: View {
             //DEBUG: _
             if viewModel.userSession != nil {
                 MainTabBar()
+                    .ignoresSafeArea(.keyboard)
                     .environmentObject(viewModel)
 //                    .alert("Выйти из аккаунта?", isPresented: $viewModel.showExitFromAccAlert) {
 //                        Button("Отмена", role: .cancel) {

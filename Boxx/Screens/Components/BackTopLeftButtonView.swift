@@ -16,12 +16,13 @@ struct BackTopLeftButtonView: View {
             Button(action: { dismiss() }) {
                 ZStack {
                     Circle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 40, height: 40)
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 35, height: 35)
                     
                     Image(systemName: "chevron.left")
                         .font(.title3)
                         .foregroundColor(.black)
+                        .scaleEffect(0.9)
                 }
             }
             Spacer()

@@ -15,11 +15,12 @@ struct DeparturesView: View {
         NavigationStack {
             VStack(spacing: 30) {
                 NavigationLink("Уезжаете") {
-                    YouAreSendingView()
+                    YouAreLeavingView()
+                        .ignoresSafeArea(.keyboard)
                 }
                 
                 NavigationLink("Отправляете") {
-                    YouAreLeavingView()
+                    YouAreSendingView()
                 }
             }
         }
