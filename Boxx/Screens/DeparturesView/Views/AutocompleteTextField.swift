@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct AutocompleteTextField: View {
-    @State private var text = ""
-    @State private var suggestions = ["V1", "V2", "V$", "Мадрид", "Минск"]
+    var placeholder: String
+    
+    @Binding var text: String
+    var suggestions : [String]
     @State private var selected = false
 
     var body: some View {
         VStack {
-            TextField("Куда", text: $text)
+            TextField(placeholder, text: $text)
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 14)
@@ -51,6 +53,6 @@ struct AutocompleteTextField: View {
     }
 }
 
-#Preview {
-    AutocompleteTextField()
-}
+//#Preview {
+//    AutocompleteTextField()
+//}

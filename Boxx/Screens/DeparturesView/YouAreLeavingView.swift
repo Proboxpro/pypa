@@ -111,12 +111,13 @@ struct DeliveryFormView: View {
         }
     }
 //    @State var calendarSelected: Bool = false
+    @State private var testSuggestions : [String] = ["v1", "v2", "v3", "v4", "v5"]
     
     @MainActor
     func firstScreen()-> some View{
         VStack {
-            AutocompleteTextField()
-            AutocompleteTextField()
+            AutocompleteTextField(placeholder: "Куда", text: $to, suggestions: testSuggestions)
+            AutocompleteTextField(placeholder: "Откуда", text: $from, suggestions: testSuggestions)
             DatePickerView(isPickerPresented: $isPickerPresented)
 //                .onTapGesture {
 //                    calendarSelected.toggle()
