@@ -19,6 +19,7 @@ struct PypButtonRightImage: View {
                 Text(text)
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .scaleEffect(0.9)
                 
                 if let image = image {
                     image
@@ -29,7 +30,7 @@ struct PypButtonRightImage: View {
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(25)
+            .padding(24)
             .background(backgroundColor)
             .cornerRadius(12)
         }
@@ -58,7 +59,7 @@ struct PypLabelRightImage: View {
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(25)
+            .padding(24)
             .background(backgroundColor)
             .cornerRadius(12)
     }

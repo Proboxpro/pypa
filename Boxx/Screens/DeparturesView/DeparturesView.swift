@@ -19,7 +19,7 @@ struct DeparturesView: View {
                 
                 Spacer()
                 
-                VStack(spacing: 10) {
+                VStack(spacing: 13) {
                     NavigationLink {
                         YouAreLeavingView()
                             .ignoresSafeArea(.keyboard)
