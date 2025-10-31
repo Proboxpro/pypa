@@ -3,6 +3,7 @@
 //  Boxx
 //
 //  Created by Supunme Nanayakkarami on 17.11.2023.
+//  Edited by Sasha Soldatov on 29.10.2025.
 //
 
 import SwiftUI
@@ -23,11 +24,17 @@ import SDWebImageSwiftUI
 
 
 
+struct OrderWithListing: Identifiable, Hashable {
+    let id: String
+    let orderItem: OrderDescriptionItem
+    let listingItem: ListingItem
+}
+
 @available(iOS 17.0, *)
 struct OrdersList: View {
     @EnvironmentObject var viewModel: AuthViewModel
     
-    @State private var orderItem: OrderDescriptionItem? = nil
+    @State private var orderWithListing: OrderWithListing? = nil
 
     var body: some View {
         if let user = viewModel.currentUser {
@@ -63,21 +70,19 @@ struct OrdersList: View {
                        }
                    }
                }
-               .fullScreenCover(item: $orderItem, onDismiss: {
-//                   viewModel.fetchOrderDescription()
-               }, content: { item in
-                   NavigationView{
-                       OrderDetail(orderItem: item)
-                           .environmentObject(OrderViewModel(authViewModel: self.viewModel))
-                           .navigationBarBackButtonHidden()
-                   }
-               })
+               .navigationDestination(item: $orderWithListing) { item in
+                   OrderDetailView(
+                       orderItem: item.orderItem,
+                       listingItem: item.listingItem
+                   )
+                   .environmentObject(viewModel)
+               }
                
            }
            .onAppear {
                viewModel.fetchOrderDescription()
-//               viewModel.fetchOrderDescriptionAsOwner()
-//               viewModel.fetchOrderDescriptionAsRecipient()
+               viewModel.fetchOrderDescriptionAsOwner()
+               viewModel.fetchOrderDescriptionAsRecipient()
            }
            .onDisappear {
 //               viewModel = nil
@@ -96,15 +101,34 @@ struct OrdersList: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.black)
                 }
-//            ForEach(viewModel.ownerOrderDescription.filter(isIncluded), id: \.hashValue) { order in
-                ForEach(viewModel.orderDescription.filter(isIncluded), id: \.hashValue) { order in
+            ForEach(viewModel.ownerOrderDescription.filter(isIncluded), id: \.hashValue) { order in
                     OrderRow(isCompleted: order.isCompleted,
                              orderImageURL: order.image,
                              profileName: "В \(order.cityTo)",
                              orderDescription: order.description ?? "Описание",
                              date: order.creationTime)
                     .onTapGesture {
-                        self.orderItem = order
+                        Task {
+                            await loadListingItemAndSetOrder(order)
+                        }
+                    }
+                }
+                
+            if !viewModel.orderDescription.filter(isIncluded).isEmpty {
+                    Text("Заказанные товары")
+                        .fontWeight(.medium)
+                        .foregroundStyle(.black)
+                }
+            ForEach(viewModel.orderDescription.filter(isIncluded), id: \.hashValue) { order in
+                    OrderRow(isCompleted: order.isCompleted,
+                             orderImageURL: order.image,
+                             profileName: "В \(order.cityTo)",
+                             orderDescription: order.description ?? "Описание",
+                             date: order.creationTime)
+                    .onTapGesture {
+                        Task {
+                            await loadListingItemAndSetOrder(order)
+                        }
                     }
                 }
 
@@ -138,7 +162,9 @@ struct OrdersList: View {
                              orderDescription: order.description ?? "Описание",
                              date: order.creationTime)
                     .onTapGesture {
-                        self.orderItem = order
+                        Task {
+                            await loadListingItemAndSetOrder(order)
+                        }
                     }
                 }
         }
@@ -154,6 +180,37 @@ struct OrdersList: View {
         }
         .pickerStyle(.segmented)
         .padding()
+    }
+    
+    private func loadListingItemAndSetOrder(_ order: OrderDescriptionItem) async {
+        var listing = await viewModel.fetchListingItem(by: order.announcementId)
+        
+        // Если не нашли в Firestore, создаем минимальный ListingItem из OrderDescriptionItem
+        if listing == nil {
+            let priceString = order.price.map { String($0) } ?? "0"
+            listing = ListingItem(
+                id: order.announcementId,
+                ownerUid: order.ownerId,
+                ownerName: order.ownerName,
+                imageUrl: order.image?.absoluteString ?? "",
+                pricePerKillo: priceString,
+                cityFrom: order.cityFrom,
+                cityTo: order.cityTo,
+                imageUrls: order.image?.absoluteString ?? "",
+                startdate: "",
+                conversation: nil
+            )
+        }
+        
+        guard let listing = listing else { return }
+        
+        await MainActor.run {
+            orderWithListing = OrderWithListing(
+                id: order.documentId,
+                orderItem: order,
+                listingItem: listing
+            )
+        }
     }
 }
 

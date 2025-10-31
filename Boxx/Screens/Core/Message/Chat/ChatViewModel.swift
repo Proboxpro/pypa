@@ -3,6 +3,7 @@
 //  Boxx
 //
 //  Created by Максим Алексеев  on 28.02.2024.
+//  Edited by Sasha Soldatov on 29.10.2025.
 //
 
 import Foundation
@@ -22,6 +23,11 @@ class ChatViewModel: ObservableObject, Identifiable {
     var allUsers: [User] = []
     
     var conversationId: String?
+    
+    // MARK: - Identifiable
+    var id: String {
+        return conversationId ?? UUID().uuidString
+    }
     var conversation: Conversation? {
         if let id = conversationId {
             return MessageService.shared.conversations.first(where: { $0.id == id })
