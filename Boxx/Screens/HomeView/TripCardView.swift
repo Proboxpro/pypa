@@ -47,7 +47,7 @@ struct TripCardView: View {
     
     
     private var backgroundImage: some View {
-        let urlString = item.imageUrl.isEmpty ? item.imageUrls : item.imageUrl
+        let urlString = item.imageUrls
         
         return LazyImage(request: ImageRequest(
             url: URL(string: urlString),

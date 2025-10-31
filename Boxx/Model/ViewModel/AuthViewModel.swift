@@ -34,7 +34,7 @@ class AuthViewModel: ObservableObject {
     @Published var order: Order?
     @Published var user: [User] = []
     @Published var users: [User] = []
-    @Published var city: [City] = []
+    @Published var allPosibleCityes: [City] = []
     
     @Published var orderDescription: [OrderDescriptionItem] = []
     @Published var ownerOrderDescription: [OrderDescriptionItem] = []
@@ -68,12 +68,14 @@ class AuthViewModel: ObservableObject {
     @Published var activeAlert: AuthAlert?
     @Published var isAlertPresented: Bool = false
     @Published var showExitFromAccAlert: Bool = false
+    
+    @Published var showErrorDepartureAlert: Bool = false
 
     func presentAlert(kind: AuthAlert.Kind = .info, title: String? = nil, message: String) {
         let defaultTitle: String
         switch kind {
         case .info: defaultTitle = "Сообщение"
-        case .success: defaultTitle = "Успех"
+        case .success: defaultTitle = "Успешно"
         case .warning: defaultTitle = "Внимание"
         case .error: defaultTitle = "Ошибка"
         }
@@ -273,7 +275,7 @@ class AuthViewModel: ObservableObject {
                     let reg = data["reg"]as? String ?? ""
                     let city = City(id: id, name: name, reg: reg)
                     
-                    self.city.append(city)
+                    self.allPosibleCityes.append(city)
                 }
             }
         }
@@ -638,12 +640,6 @@ class AuthViewModel: ObservableObject {
     func saveImage (data: Data, UserId: String) async throws -> (name:String, path: String){
         let meta = StorageMetadata()
         
-//        guard let resizedImage = image.resize(to: targetSize),
-//                  let imageData = resizedImage.jpegData(compressionQuality: 0.8) else {
-//                completion(.failure(NSError(domain: "Image resizing failed", code: 0, userInfo: nil)))
-//                return
-//            }
-        
         meta.contentType = "image/jpeg"
         let path = "\(UUID().uuidString).jpeg"
         let returnedMetaData = try await userReference(UserId:UserId).child(path).putDataAsync(data, metadata: meta)
@@ -678,23 +674,6 @@ class AuthViewModel: ObservableObject {
         }.value
     }
     
-//    func handlePhotoPickerItem(item: PhotosPickerItem) {
-//        Task {
-////            if let newItem,
-//            let data = try? await item.loadTransferable(type: Data.self) {_ in
-//                if let image = UIImage(data: data) {
-//                    let resizedImage = image.resize(to: CGSize(width: 120, height: 120))
-//                    let compressionQuality: CGFloat = 0.1
-//                    if let compressedImage = resizedImage?.compressed(to: compressionQuality) {
-//                        avatar = compressedImage
-//                        if let compressedData = compressedImage.jpegData(compressionQuality: compressionQuality) {
-//                            viewModel.saveProfileImage(item: compressedData)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
     
     func saveProfileImage(item: Data) {
         guard let UserId = Auth.auth().currentUser?.uid else {return}
@@ -945,38 +924,6 @@ class AuthViewModel: ObservableObject {
         self.order = try? snapshot.data(as: Order.self)
     }
     
-    //    func getMessages() {
-    //        db.collection("messages").addSnapshotListener { querySnapshot, error in
-    //            // If we don't have documents, exit the function
-    //            guard let documents = querySnapshot?.documents else {
-    //                print("Error fetching documents: \(String(describing: error))")
-    //                return
-    //            }
-    //
-    //            // Mapping through the documents
-    //            self.messages = documents.compactMap { document -> Message? in
-    //                do {
-    //                    // Converting each document into the Message model
-    //                    // Note that data(as:) is a function available only in FirebaseFirestoreSwift package - remember to import it at the top
-    //                    return try document.data(as: Message.self)
-    //                } catch {
-    //                    // If we run into an error, print the error in the console
-    //                    print("Error decoding document into Message: \(error)")
-    //
-    //                    // Return nil if we run into an error - but the compactMap will not include it in the final array
-    //                    return nil
-    //                }
-    //            }
-    //
-    //            // Sorting the messages by sent date
-    //            self.messages.sort { $0.timestamp < $1.timestamp }
-    //
-    //            // Getting the ID of the last message so we automatically scroll to it in ContentView
-    //            if let id = self.messages.last?.id {
-    //                self.lastMessageId = id
-    //            }
-    //        }
-    //    }
     
     // Add a message in Firestore
     func createNewOrder(senderName: String, senderUid: String,ownerUid: String,  ownerName: String, description: String, value: String, cityFrom: String, cityTo: String, imageUrls: String, recipient: String, ownerImageUrl: String,text: String) {
@@ -1009,22 +956,6 @@ class AuthViewModel: ObservableObject {
             completion(order)
         }
     }
-    //  func sendMessage(_ text: String, toUser user: User) {
-    //      guard let uid = Auth.auth().currentUser?.uid else { return }
-    //   let chatPartnerId = user.id
-    //   let currentUserRef = messagesCollection.document (uid).collection(chatPartnerId).document()
-    //   let chatPartnerRef = messagesCollection .document (chatPartnerId) .collection(uid)
-    //   let id = currentUserRef.documentID
-    //   let message = NewOrder(
-    //      senderUid:uid,
-    //      ownerUid: chatPartnerId,
-    //      text: text,
-    //      timestamp: Timestamp()
-    //)
-    //   guard let messageData = try? Firestore.Encoder ().encode (message) else {return}
-    //   currentUserRef.setData(messageData)
-    //   chatPartnerRef.document(id).setData(messageData)
-    //}
     
     
     //MARK: - UserDefaults
@@ -1047,71 +978,64 @@ class AuthViewModel: ObservableObject {
     
     //MARK: - OrderStatus handling message screen
     @Published var orderStatus: OrderStatus = .isInDelivery
+    
+    
+    //MARK: - DeparturesView:
+    func uploadPostservice(cityTo: String, cityFrom: String,/*data: City,*/ startdate: Date, pricePerKillo: Double, transport: String, description: String) async
+    {
+        guard let uid = currentUser?.id else {return}
+        let ownerUid = uid
+        let ownerName = currentUser?.login
+        let imageUrl = currentUser?.imageUrl
+        
+        
+//        let db = Firestore.firestore()
+//        db.collection("Customers").document().setData([ "id": NSUUID().uuidString,  "ownerUid": ownerUid, "ownerName": ownerName ?? "-", "pricePerKillo": pricePerKillo, "cityFrom": data.name, "cityTo": cityTo, "startdate":startdate.convertToMonthYearFormat(), "imageUrls": data.reg, "imageUrl": imageUrl ?? "-"]) {error in
+//            if let error = error {
+//                print(error.localizedDescription)
+//            }
+//        }
+        guard let city = allPosibleCityes.filter({$0.name == cityFrom}).first else { return }
+        
+        await addCustomer(ownerUid: ownerUid, ownerName: ownerName, pricePerKillo: pricePerKillo, data: city, cityTo: cityTo, startdate: startdate, imageUrl: imageUrl, transport: transport, description: description)
+    }
+    
+    func addCustomer(
+        ownerUid: String,
+        ownerName: String?,
+        pricePerKillo: Double,
+        data: City, // замени на свою структуру
+        cityTo: String,
+        startdate: Date,
+        imageUrl: String?,
+        transport: String,
+        description: String
+    ) async {
+        let db = Firestore.firestore()
+        let doc = db.collection("Customers").document()
+        
+        do {
+            try await doc.setData([
+                "id": UUID().uuidString,
+                "ownerUid": ownerUid,
+                "ownerName": ownerName ?? "-",
+                "pricePerKillo": pricePerKillo,
+                "cityFrom": data.name,
+                "cityTo": cityTo,
+                "startdate": startdate.convertToMonthYearFormat(),
+                "imageUrls": data.reg,
+                "imageUrl": imageUrl ?? "-",
+                "transport": transport,
+                "descrtiption": description
+            ])
+            presentAlert(kind: .success, message: "✅ Обьявление успешно создано!")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+                self.isAlertPresented = false
+            })
+                                          
+        } catch {
+            presentAlert(kind: .error, message: "❌ Firestore error: \(error.localizedDescription)")
+        }
+    }
 }
 
-//private func ScrollViewWithOrders()->some View {
-//    ScrollView {
-//
-//        switch viewModel.orderStatus {
-//        case .isInDelivery:
-//
-//
-////                if !viewModel.ownerOrderDescription.isEmpty {
-////                    Text("Мои поездки")
-////                        .fontWeight(.medium)
-////                        .foregroundStyle(.black)
-////                }
-//            ForEach(viewModel.ownerOrderDescription.filter({!$0.isDelivered}), id: \.hashValue) { order in
-//                OrderRow(isCompleted: order.isCompleted,
-//                         orderImageURL: order.image,
-//                         profileName: "В \(order.cityTo)",
-//                         orderDescription: order.description ?? "Описание",
-//                         date: order.creationTime)
-//                .onTapGesture {
-//                    self.orderItem = order
-//                }
-//                .onAppear {
-//                    print("ORDER:", order.description! , "is sent=", order.isSent, "is indelivery=", order.isInDelivery, "isDelivered= " ,order.isDelivered)
-//                }
-//            }
-//
-//        default:
-////            case .isDelivered:
-//
-////                if !viewModel.orderDescription.isEmpty {
-////                    Text("Заказанные товары")
-////                        .fontWeight(.medium)
-////                        .foregroundStyle(.black)
-////                }
-//            ForEach(viewModel.orderDescription.filter({$0.isDelivered}), id: \.hashValue) { order in
-//                OrderRow(isCompleted: order.isCompleted,
-//                         orderImageURL: order.image,
-//                         profileName: "В \(order.cityTo)",
-//                         orderDescription: order.description ?? "Описание",
-//                         date: order.creationTime)
-//                .onTapGesture {
-//                    self.orderItem = order
-//                }
-//                .onAppear {
-//                    print("ORDER: is sent=", order.isSent, "is indelivery=", order.isInDelivery, "isDelivered= " ,order.isDelivered)
-//                }
-//            }
-//
-////                if !viewModel.recipientOrderDescription.isEmpty {
-////                    Text("Нужно получить")
-////                        .fontWeight(.medium)
-////                        .foregroundStyle(.black)
-////                }
-////                ForEach(viewModel.recipientOrderDescription, id: \.hashValue) { order in
-////                    OrderRow(isCompleted: order.isCompleted,
-////                             orderImageURL: order.image,
-////                             profileName: "В \(order.cityTo)",
-////                             orderDescription: order.description ?? "Описание",
-////                             date: order.creationTime)
-////                    .onTapGesture {
-////                        self.orderItem = order
-////                    }
-////                }
-//        }
-//    }
-//}

@@ -37,8 +37,8 @@ struct DestinationSearchView: View {
     @State var search = ""
 
     var filtereduser: [City] {
-        guard !search.isEmpty else { return viewModel.city}
-        return viewModel.city.filter{ $0.name.localizedCaseInsensitiveContains (search) }
+        guard !search.isEmpty else { return viewModel.allPosibleCityes}
+        return viewModel.allPosibleCityes.filter{ $0.name.localizedCaseInsensitiveContains (search) }
     }
 
     @State private var selectedOption: DestinationSearchOptions = .location
@@ -101,7 +101,7 @@ struct DestinationSearchView: View {
                                 .foregroundStyle(Color(.systemGray4))
                         }
                     if self.search != ""{
-                        if  self.viewModel.city.filter({$0.name.lowercased().contains(self.search.lowercased())}).count == 0{
+                        if  self.viewModel.allPosibleCityes.filter({$0.name.lowercased().contains(self.search.lowercased())}).count == 0{
                             VStack(alignment: .leading){
                                 Text("Не найден")
                             }

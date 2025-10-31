@@ -13,15 +13,31 @@ struct DeparturesView: View {
     var body: some View {
         
         NavigationStack {
-            VStack(spacing: 30) {
-                NavigationLink("Уезжаете") {
-                    YouAreSendingView()
-                }
+            VStack {
+                BaseTitle("Выберите вариант")
+                    .padding(.top)
                 
-                NavigationLink("Отправляете") {
-                    YouAreLeavingView()
+                Spacer()
+                
+                VStack(spacing: 13) {
+                    NavigationLink {
+                        YouAreLeavingView()
+                            .ignoresSafeArea(.keyboard)
+                    } label: {
+                        PypLabelRightImage(text: "Уезжаете", image: Image("car_frong"))
+                    }
+                    
+                    NavigationLink {
+                        YouAreSendingView()
+                    } label: {
+                        PypLabelRightImage(text: "Отправляете", image: Image("box_with_clock"))
+                    }
                 }
+                .offset(y: -30)
+                
+                Spacer()
             }
+            .padding(.horizontal, 10)
         }
     }
 }
