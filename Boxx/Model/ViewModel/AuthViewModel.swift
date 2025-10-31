@@ -162,6 +162,35 @@ class AuthViewModel: ObservableObject {
         return User(id: uid ?? "", fullname: fullname, login: login, email: email, imageUrl: profileImageUrlString, number: number)
     }
     
+    func fetchUser(by login: String, completion: @escaping (User?) -> Void) {
+        guard !login.isEmpty else {
+            completion(nil)
+            return
+        }
+        
+        Firestore.firestore()
+            .collection("users")
+            .whereField( "login", isEqualTo: login)
+            .limit(to: 1)
+            .getDocuments() { snapshot, error in
+                guard let documents = snapshot?.documents, !documents.isEmpty else {
+                    completion(nil)
+                    return
+                }
+                let data = documents[0].data()
+                let fullname = data["fullname"] as? String ?? ""
+                let loginValue = data["login"] as? String ?? ""
+                let email = data["email"] as? String ?? ""
+                let number = data["number"] as? String ?? ""
+                let profileImageUrlString = data["imageUrl"] as? String
+                let uid = data["id"] as? String ?? documents[0].documentID
+                let user = User(id: uid, fullname: fullname, login: loginValue, email: email, imageUrl: profileImageUrlString, number: number)
+                completion(user)
+                        }
+            }
+        
+    
+    
     
     //MARK: fetch user to show
     func fetchUserToShow(id: String, completion: @escaping (Result<User, Error>) -> Void) {
@@ -278,6 +307,50 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    func fetchListingItem(by id: String) async -> ListingItem? {
+        // Сначала проверяем, есть ли уже в загруженных orders
+        if let existing = orders.first(where: { $0.id == id }) {
+            return existing
+        }
+        
+        // Если нет, загружаем из Firestore
+        do {
+            let db = Firestore.firestore()
+            let ref = db.collection("Customers")
+            let query = ref.whereField("id", isEqualTo: id).limit(to: 1)
+            let snapshot = try await query.getDocuments()
+            
+            guard let document = snapshot.documents.first else { return nil }
+            let data = document.data()
+            
+            let itemId = data["id"] as? String ?? ""
+            let ownerUid = data["ownerUid"] as? String ?? ""
+            let ownerName = data["ownerName"] as? String ?? ""
+            let imageUrl = data["imageUrl"] as? String ?? ""
+            let pricePerKillo = data["pricePerKillo"] as? String ?? ""
+            let cityFrom = data["cityFrom"] as? String ?? ""
+            let cityTo = data["cityTo"] as? String ?? ""
+            let imageUrls = data["imageUrls"] as? String ?? ""
+            let startdate = data["startdate"] as? String ?? ""
+            let conversation = data["conversation"] as? FirestoreConversation
+            
+            return ListingItem(
+                id: itemId,
+                ownerUid: ownerUid,
+                ownerName: ownerName,
+                imageUrl: imageUrl,
+                pricePerKillo: pricePerKillo,
+                cityFrom: cityFrom,
+                cityTo: cityTo,
+                imageUrls: imageUrls,
+                startdate: startdate,
+                conversation: conversation
+            )
+        } catch {
+            return nil
+        }
+    }
+    
     func deleteOrder(id:String)  {
         let db = Firestore.firestore()
         db.collection ("Customers").whereField("id", isEqualTo: id).getDocuments{(snap,
@@ -350,7 +423,7 @@ class AuthViewModel: ObservableObject {
         fetchInnerCollection(ref: infoRef) { (documentId, announcementId, ownerId, recipientId,
                                               cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                               description, url, price,
-                                              isSent, isInDelivery, isDelivered,
+                                              isSent, isPickedUp, isInDelivery, isDelivered,
                                               isCompleted) in
             let order = OrderDescriptionItem(id: uid,
                                              documentId: documentId,
@@ -369,6 +442,7 @@ class AuthViewModel: ObservableObject {
                                              image: url,
                                              price: price,
                                              isSent: isSent,
+                                             isPickedUp: isPickedUp,
                                              isInDelivery: isInDelivery,
                                              isDelivered: isDelivered,
                                              isCompleted: isCompleted)
@@ -394,10 +468,10 @@ class AuthViewModel: ObservableObject {
                     self.fetchInnerCollection(ref: infoRef) { (documentId, announcementId, ownerId, recipientId,
                                                                cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                                                description, url, price,
-                                                               isSent, isInDelivery, isDelivered,
+                                                               isSent, isPickedUp, isInDelivery, isDelivered,
                                                                isCompleted) in
                         if ownerId == uid {
-                            let order = OrderDescriptionItem(id: uid,
+                            let order = OrderDescriptionItem(id: id,  // id из документа - это sender ID
                                                              documentId: documentId,
                                                              announcementId: announcementId,
                                                              ownerId: ownerId,
@@ -414,6 +488,7 @@ class AuthViewModel: ObservableObject {
                                                              image: url,
                                                              price: price,
                                                              isSent: isSent,
+                                                             isPickedUp: isPickedUp,
                                                              isInDelivery: isInDelivery,
                                                              isDelivered: isDelivered,
                                                              isCompleted: isCompleted)
@@ -428,9 +503,9 @@ class AuthViewModel: ObservableObject {
     
     func fetchOrderDescriptionAsRecipient(){
         recipientOrderDescription.removeAll()
-        guard let uid = Auth.auth().currentUser?.uid else {return}
+        guard let uid = Auth.auth().currentUser?.uid else { return }
         let db = Firestore.firestore()
-        let ref = db.collection( "orderDescription")
+        let ref = db.collection("orderDescription")
         ref.getDocuments { snapshot, error in
             guard error == nil else {
                 print(error!.localizedDescription)
@@ -439,15 +514,15 @@ class AuthViewModel: ObservableObject {
             if let snapshot = snapshot {
                 for document in snapshot.documents {
                     let data = document.data()
-                    let id = data["id"]as? String ?? ""
+                    let id = data["id"] as? String ?? ""
                     let infoRef = ref.document(id).collection("information")
                     self.fetchInnerCollection(ref: infoRef) { (documentId, announcementId, ownerId, recipientId, 
                                                                cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                                                description, url, price,
-                                                               isSent, isInDelivery, isDelivered,
+                                                               isSent, isPickedUp, isInDelivery, isDelivered,
                                                                isCompleted) in
                         if recipientId == uid {
-                            let order = OrderDescriptionItem(id: uid,
+                            let order = OrderDescriptionItem(id: id,  // id документа = senderId
                                                              documentId: documentId,
                                                              announcementId: announcementId,
                                                              ownerId: ownerId,
@@ -464,10 +539,13 @@ class AuthViewModel: ObservableObject {
                                                              image: url,
                                                              price: price,
                                                              isSent: isSent,
+                                                             isPickedUp: isPickedUp,
                                                              isInDelivery: isInDelivery,
                                                              isDelivered: isDelivered,
                                                              isCompleted: isCompleted)
-                            self.recipientOrderDescription.append(order)
+                            DispatchQueue.main.async {
+                                self.recipientOrderDescription.append(order)
+                            }
                         }
                     }
                 }
@@ -478,7 +556,7 @@ class AuthViewModel: ObservableObject {
     private func fetchInnerCollection(ref: CollectionReference, completion: @escaping ((String, String, String, String, 
                                                                                         String, CLLocation, String, CLLocation, String, Date,
                                                                                         String, URL?, Int,
-                                                                                        Bool, Bool, Bool,
+                                                                                        Bool, Bool, Bool, Bool,
                                                                                         Bool) -> Void)) {
         ref.getDocuments { snapshot, error in
             guard error == nil else {
@@ -510,6 +588,7 @@ class AuthViewModel: ObservableObject {
                     let price = data["price"]as? Int ?? 0
                     
                     let isSent = data["isSent"]as? Bool ?? false
+                    let isPickedUp = data["isPickedUp"]as? Bool ?? false
                     let isInDelivery = data["isInDelivery"]as? Bool ?? false
                     let isDelivered = data["isDelivered"]as? Bool ?? false
                     
@@ -517,7 +596,7 @@ class AuthViewModel: ObservableObject {
                     completion(document.documentID, announcementId, ownerId, recipientId, 
                                cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                description, url, price,
-                               isSent, isInDelivery, isDelivered,
+                               isSent, isPickedUp, isInDelivery, isDelivered,
                                isCompleted)
                 }
             }
@@ -734,8 +813,11 @@ class AuthViewModel: ObservableObject {
                    cityFrom: String, cityTo: String, ownerName: String,
                    imageData: Data, description: String, price: Int) async throws -> OrderDescriptionItem? {
         guard let UserId = Auth.auth().currentUser?.uid else { return nil }
+        
         do {
-            let url = try await getImageUrl(imageData: imageData)
+            // Получаем URL изображения, если imageData не пустой, иначе nil
+            let url: URL? = imageData.isEmpty ? nil : try await getImageUrl(imageData: imageData)
+            
             let doc = Firestore.firestore()
                 .collection("orderDescription")
                 .document(UserId)
@@ -745,54 +827,39 @@ class AuthViewModel: ObservableObject {
                 .document(UserId)
                 .collection("information")
                 .document()
+            
             let cityFromCoordinates = try await CLGeocoder().geocodeAddressString(cityFrom)
             let cityToCoordinates = try await CLGeocoder().geocodeAddressString(cityTo)
+            let orderData: [String: Any] = [
+                "ownerId": ownerId,
+                "recipientId": recipientId,
+                "announcementId": announcementId,
+                "cityFrom": cityFrom,
+                "cityFromLat": cityFromCoordinates[0].location?.coordinate.latitude ?? 0.0,
+                "cityFromLon": cityFromCoordinates[0].location?.coordinate.longitude ?? 0.0,
+                "cityTo": cityTo,
+                "cityToLat": cityToCoordinates[0].location?.coordinate.latitude ?? 0.0,
+                "cityToLon": cityToCoordinates[0].location?.coordinate.longitude ?? 0.0,
+                "ownerName": ownerName,
+                "creationTime": Date(),
+                "description": description,
+                "image": url?.absoluteString ?? "",
+                "price": price,
+                "isSent": false,  // При создании новой сделки всегда false
+                "isPickedUp": false,
+                "isInDelivery": false,
+                "isDelivered": false,
+                "isCompleted": false
+            ]
+            
             if document.exists {
-                try await infoDoc.setData([
-                    "ownerId": ownerId,
-                    "recipientId": recipientId,
-                    "announcementId": announcementId,
-                    "cityFrom": cityFrom,
-                    "cityFromLat": cityFromCoordinates[0].location?.coordinate.latitude,
-                    "cityFromLon": cityFromCoordinates[0].location?.coordinate.longitude,
-                    "cityTo": cityTo,
-                    "cityToLat": cityToCoordinates[0].location?.coordinate.latitude,
-                    "cityToLon": cityToCoordinates[0].location?.coordinate.longitude,
-                    "ownerName": ownerName,
-                    "creationTime": Date(),
-                    "description": description,
-                    "image": url?.absoluteString ?? "",
-                    "price": price,
-                    "isSent": true,
-                    "isInDelivery": false,
-                    "isDelivered": false,
-                    "isCompleted": false
-                ])
+                try await infoDoc.setData(orderData)
             } else {
-                    try await doc.setData([
-                        "id": UserId
-                    ])
-                    try await infoDoc.setData([
-                        "ownerId": ownerId,
-                        "recipientId": recipientId,
-                        "announcementId": announcementId,
-                        "cityFrom": cityFrom,
-                        "cityFromLat": cityFromCoordinates[0].location?.coordinate.latitude,
-                        "cityFromLon": cityFromCoordinates[0].location?.coordinate.longitude,
-                        "cityTo": cityTo,
-                        "cityToLat": cityToCoordinates[0].location?.coordinate.latitude,
-                        "cityToLon": cityToCoordinates[0].location?.coordinate.longitude,
-                        "ownerName": ownerName,
-                        "creationTime": Date(),
-                        "description": description,
-                        "image": url?.absoluteString ?? "",
-                        "price": price,
-                        "isSent": false,
-                        "isInDelivery": false,
-                        "isDelivered": false,
-                        "isCompleted": false
-                    ])
-                }
+                try await doc.setData([
+                    "id": UserId
+                ])
+                try await infoDoc.setData(orderData)
+            }
             let order = OrderDescriptionItem(
                 id: UserId,
                 documentId: infoDoc.documentID,
@@ -811,6 +878,7 @@ class AuthViewModel: ObservableObject {
                 image: url,
                 price: price,
                 isSent: false,
+                isPickedUp: false,
                 isInDelivery: false,
                 isDelivered: false,
                 isCompleted: false)
@@ -831,6 +899,8 @@ class AuthViewModel: ObservableObject {
             switch type {
             case .isSent:
                 try await infoDoc.updateData([ "isSent": value ])
+            case .isPickedUp:
+                try await infoDoc.updateData([ "isPickedUp": value ])
             case .isInDelivery:
                 try await infoDoc.updateData([ "isInDelivery": value ])
             case .isDelivered:

@@ -34,6 +34,7 @@ struct OrderDescriptionItem: Identifiable, Codable, Hashable {
     let price: Int?
     
     var isSent: Bool
+    var isPickedUp: Bool
     var isInDelivery: Bool
     var isDelivered: Bool
     
@@ -46,6 +47,7 @@ enum OrderStatus: String, CaseIterable, Identifiable {
     }
     
     case isSent = "Отправлен"
+    case isPickedUp = "Забран"
     case isInDelivery = "Актуальные"
     case isDelivered = "Доставлен"
 }

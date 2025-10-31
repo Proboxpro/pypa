@@ -2,7 +2,7 @@
 //  DealDetailsView.swift
 //  Boxx
 //
-//  Created on 2025.
+//  Created by Sasha Soldatov on 29.10.2025.
 //
 
 import SwiftUI
@@ -22,6 +22,7 @@ struct OrderDetailView: View {
     
     @State private var owner: User?
     @State private var recipient: User?
+    @State private var sender: User?
     @State private var conversation: Conversation?
     @State private var chatViewModel: ChatViewModel?
     @State private var photosPickerItem: PhotosPickerItem?
@@ -58,7 +59,7 @@ struct OrderDetailView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottom) {
             ScrollView(showsIndicators: false) {
                 ZStack(alignment: .bottomLeading) {
                     // Верхняя секция с изображением города
@@ -115,12 +116,7 @@ struct OrderDetailView: View {
                     }
                 }
                 
-                // Секция с кнопкой чата
-                if let owner = owner {
-                    chatSection(owner: owner)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                }
+                // Секция с кнопкой чата перенесена в .safeAreaInset(edge: .bottom)
                 
                 // Секция "Отдайте посылку" - только для sender, когда посылка еще не отправлена
                 if isSender && !isOwner && !currentOrderItem.isSent {
@@ -130,33 +126,47 @@ struct OrderDetailView: View {
                         .padding(.vertical, 16)
                 }
                 
-                // Кнопка подтверждения для owner - только после того, как sender отправил фото
-                if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isInDelivery {
-                    // Путешественник подтверждает, что забрал посылку
+                // Кнопка подтверждения для owner: "Забрал" — после того, как sender отправил фото
+                if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isPickedUp {
                     confirmPickedUpButton
                         .padding(.horizontal, 20)
                         .padding(.vertical, 16)
                 }
-                
-                // Кнопка подтверждения для recipient
-                if isRecipient && !isSender && !isOwner && currentOrderItem.isSent && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered {
-                    // Получатель подтверждает получение посылки
-                    confirmDeliveredButton
+
+                // Кнопка подтверждения для owner: "Я в пути" — после того, как подтвердил забор
+                if isOwner && !isSender && currentOrderItem.isPickedUp && !currentOrderItem.isInDelivery {
+                    confirmOnTheWayButton
                         .padding(.horizontal, 20)
                         .padding(.vertical, 16)
                 }
                 
-                // Бар статусов
-                if currentOrderItem.isSent {
-                    statusBarSection
+                // Секция для recipient: загрузка фото получения, затем меняем статус isDelivered
+                if isRecipient && !isSender && !isOwner && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered {
+                    receiveParcelSection
                         .padding(.horizontal, 20)
                         .padding(.vertical, 16)
                 }
-                
+                // Бар статусов и чат закреплены через safeAreaInset
                 Spacer(minLength: 100)
             }
         }
         .edgesIgnoringSafeArea(.all)
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 12) {
+                if let owner = owner, let recipient = recipient, let sender = sender {
+                    chatSection(owner: owner, recipient: recipient, sender: sender)
+                }
+//                if currentOrderItem.isSent || currentOrderItem.isPickedUp || currentOrderItem.isInDelivery || currentOrderItem.isDelivered {
+                    statusBarSection
+                //}
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+            .background(Color(.systemBackground))
+            .shadow(radius: 8, y: -2)
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             Task {
@@ -177,39 +187,14 @@ struct OrderDetailView: View {
     
     // MARK: - Chat Section
     @ViewBuilder
-    private func chatSection(owner: User) -> some View {
+    private func chatSection(owner: User, recipient: User, sender: User) -> some View {
         HStack(spacing: 16) {
-            // Аватар owner
-            AsyncImage(url: URL(string: owner.imageUrl ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-            }
-            .frame(width: 50, height: 50)
-            .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(owner.fullname)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-                
-                if let recipient = recipient {
-                    Text(recipient.fullname)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-            }
-            
-            Spacer()
             
             // Кнопка чата
             Button {
                 openChat()
             } label: {
-                Image(systemName: "message.fill")
+                Image(systemName: "ellipsis.message")
                     .foregroundStyle(.black)
                     .frame(width: 32, height: 32)
                     .background {
@@ -228,16 +213,38 @@ struct OrderDetailView: View {
                         .navigationBarBackButtonHidden(false)
                 }
             }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(owner.fullname)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                Text(recipient.fullname)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(sender.fullname)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+            
+            Spacer()
+            
+            // Аватар owner
+            AsyncImage(url: URL(string: owner.imageUrl ?? "")) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Circle()
+                    .fill(Color.gray.opacity(0.3))
+            }
+            .frame(width: 50, height: 50)
+            .clipShape(Circle())
         }
         .padding(16)
-        .background(
-            Image("backInfo")
-                .resizable()
-                .cornerRadius(16)
-        )
+        .background(Color.baseMint).cornerRadius(16)
     }
     
-    // MARK: - Send Parcel Section
+    // MARK: - раздел с отправкой посылки (у sender)
     private var sendParcelSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let owner = owner {
@@ -280,8 +287,51 @@ struct OrderDetailView: View {
         .cornerRadius(16)
         .shadow(radius: 8, y: 5)
     }
+
+    // MARK: - раздел с подтверждением получения (у recipient)
+    private var receiveParcelSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let owner = owner {
+                Text("Сделайте фото полученной посылки у \(owner.fullname)")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+            }
+            Button {
+                showImagePicker = true
+            } label: {
+                HStack {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 20))
+                    Text("Сделать фото получения")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.baseMint)
+                .cornerRadius(12)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .disabled(isLoadingImage)
+            
+            if isLoadingImage {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .padding()
+                    Spacer()
+                }
+            }
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 8, y: 5)
+    }
     
-    // MARK: - Confirm Buttons
+    // MARK: - кнопка подтверждения у owner
     private var confirmPickedUpButton: some View {
         Button {
             Task {
@@ -316,15 +366,32 @@ struct OrderDetailView: View {
         .shadow(radius: 8, y: 5)
     }
     
-    // MARK: - Status Bar Section
+    private var confirmOnTheWayButton: some View {
+        Button {
+            Task {
+                await confirmOnTheWay()
+            }
+        } label: {
+            Text("Подтвердите, что вы в пути")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.baseMint)
+                .cornerRadius(12)
+        }
+        .shadow(radius: 8, y: 5)
+    }
+    
+    // MARK: - статус бар у всех
     private var statusBarSection: some View {
         VStack(spacing: 24) {
             ZStack {
                 HStack {
                     Spacer()
-                    // Линия между "Забрал" и "Доставка" - зеленая когда owner подтвердил (isInDelivery)
+                    // Линия между "Забрал" и "Доставка" - зеленая после подтверждения забора (isPickedUp)
                     Rectangle()
-                        .foregroundColor(currentOrderItem.isInDelivery ? .green : .gray)
+                        .foregroundColor(currentOrderItem.isPickedUp ? .green : .gray)
                         .frame(width: 128, height: 2)
                         .padding(.bottom, 36)
                     // Линия между "Доставка" и "Получено" - зеленая когда recipient подтвердил (isDelivered)
@@ -336,14 +403,14 @@ struct OrderDetailView: View {
                 }
                 
                 HStack {
-                    // Забрал - подсвечивается только после подтверждения owner (isInDelivery), а не после отправки фото
+                    // Забрал - подсвечивается только после подтверждения owner (isPickedUp)
                     VStack(spacing: 16) {
-                        Image(systemName: "checkmark")
+                        Image(systemName: "hand.raised.square.on.square.fill")
                             .foregroundStyle(.white)
                             .frame(width: 32, height: 32)
                             .background {
                                 Circle()
-                                    .fill(currentOrderItem.isInDelivery ? .green : .gray)
+                                    .fill(currentOrderItem.isPickedUp ? .green : .gray)
                             }
                         Text("Забрал")
                             .font(.system(size: 14, weight: .medium))
@@ -354,7 +421,7 @@ struct OrderDetailView: View {
                     
                     // Доставка (isInDelivery) - подсвечивается когда owner подтвердил
                     VStack(spacing: 16) {
-                        Image(systemName: "checkmark")
+                        Image(systemName:"shippingbox.and.arrow.backward.fill")
                             .foregroundStyle(.white)
                             .frame(width: 32, height: 32)
                             .background {
@@ -370,7 +437,7 @@ struct OrderDetailView: View {
                     
                     // Получено (isDelivered)
                     VStack(spacing: 16) {
-                        Image(systemName: "checkmark")
+                        Image("checkmark.circle.badge.airplane.fill")
                             .foregroundStyle(.white)
                             .frame(width: 32, height: 32)
                             .background {
@@ -390,7 +457,6 @@ struct OrderDetailView: View {
         .shadow(radius: 8, y: 5)
     }
     
-    // MARK: - Background Image
     private var backgroundImage: some View {
         let urlString = listingItem.imageUrl.isEmpty ? listingItem.imageUrls : listingItem.imageUrl
         
@@ -413,36 +479,26 @@ struct OrderDetailView: View {
         }
     }
     
-    // MARK: - Methods
+    // MARK: - Методы
     private func loadUsers() async {
         owner = await viewModel.fetchUser(by: orderItem.ownerId)
         recipient = await viewModel.fetchUser(by: orderItem.recipientId)
+        sender = await viewModel.fetchUser(by: orderItem.id)
     }
     
     private func openChat() {
-        print("🔵 [openChat] Начало открытия чата")
         Task { @MainActor in
             guard let currentUser = viewModel.currentUser else {
-                print("❌ [openChat] currentUser is nil")
                 return
             }
-            print("✅ [openChat] currentUser: \(currentUser.id) - \(currentUser.fullname)")
-            print("📋 [openChat] orderItem.id (sender): \(orderItem.id)")
-            print("📋 [openChat] orderItem.ownerId: \(orderItem.ownerId)")
-            print("📋 [openChat] orderItem.recipientId: \(orderItem.recipientId)")
             
             // Загружаем всех участников, если они еще не загружены
             if owner == nil {
-                print("⏳ [openChat] Загружаем owner...")
                 owner = await viewModel.fetchUser(by: orderItem.ownerId)
             }
             if recipient == nil {
-                print("⏳ [openChat] Загружаем recipient...")
                 recipient = await viewModel.fetchUser(by: orderItem.recipientId)
             }
-            
-            print("👤 [openChat] owner: \(owner?.id ?? "nil") - \(owner?.fullname ?? "nil")")
-            print("👤 [openChat] recipient: \(recipient?.id ?? "nil") - \(recipient?.fullname ?? "nil")")
             
             // Создаем групповой чат между тремя участниками:
             // 1. owner (путешественник) - orderItem.ownerId
@@ -452,22 +508,14 @@ struct OrderDetailView: View {
             var usersForChat: [User] = []
             var addedUserIds = Set<String>()
             
-            // Сначала определяем всех трех участников - их ID
             let ownerId = orderItem.ownerId
             let recipientId = orderItem.recipientId
             let senderId = orderItem.id
             
-            print("📋 [openChat] ID участников:")
-            print("   - ownerId: \(ownerId)")
-            print("   - recipientId: \(recipientId)")
-            print("   - senderId: \(senderId)")
-            
-            // Загружаем owner
             if let ownerUser = owner {
                 if !addedUserIds.contains(ownerUser.id) {
                     usersForChat.append(ownerUser)
                     addedUserIds.insert(ownerUser.id)
-                    print("✅ [openChat] Добавлен owner: \(ownerUser.id) - \(ownerUser.fullname)")
                 }
             } else {
                 if let ownerUser = await viewModel.fetchUser(by: ownerId) {
@@ -475,19 +523,14 @@ struct OrderDetailView: View {
                     if !addedUserIds.contains(ownerUser.id) {
                         usersForChat.append(ownerUser)
                         addedUserIds.insert(ownerUser.id)
-                        print("✅ [openChat] Загружен и добавлен owner: \(ownerUser.id) - \(ownerUser.fullname)")
                     }
-                } else {
-                    print("❌ [openChat] Не удалось загрузить owner с ID: \(ownerId)")
                 }
             }
             
-            // Загружаем recipient
             if let recipientUser = recipient {
                 if !addedUserIds.contains(recipientUser.id) {
                     usersForChat.append(recipientUser)
                     addedUserIds.insert(recipientUser.id)
-                    print("✅ [openChat] Добавлен recipient: \(recipientUser.id) - \(recipientUser.fullname)")
                 }
             } else {
                 if let recipientUser = await viewModel.fetchUser(by: recipientId) {
@@ -495,128 +538,62 @@ struct OrderDetailView: View {
                     if !addedUserIds.contains(recipientUser.id) {
                         usersForChat.append(recipientUser)
                         addedUserIds.insert(recipientUser.id)
-                        print("✅ [openChat] Загружен и добавлен recipient: \(recipientUser.id) - \(recipientUser.fullname)")
                     }
-                } else {
-                    print("❌ [openChat] Не удалось загрузить recipient с ID: \(recipientId)")
                 }
             }
             
-            // Загружаем sender - ВСЕГДА добавляем, даже если он может совпадать с owner
-            // Но проверяем, чтобы не было дубликатов
+
             if !addedUserIds.contains(senderId) {
                 if let sender = await viewModel.fetchUser(by: senderId) {
                     usersForChat.append(sender)
                     addedUserIds.insert(sender.id)
-                    print("✅ [openChat] Добавлен sender: \(sender.id) - \(sender.fullname)")
-                } else {
-                    print("❌ [openChat] Не удалось загрузить sender с ID: \(senderId)")
                 }
-            } else {
-                print("⚠️ [openChat] sender (id: \(senderId)) уже в списке (совпадает с owner или другим участником)")
             }
             
-            print("👥 [openChat] Всего уникальных пользователей для чата: \(usersForChat.count)")
-            usersForChat.forEach { user in
-                print("   - \(user.id): \(user.fullname)")
-            }
-            
-            // Проверяем, что у нас есть хотя бы 2 участника
             guard usersForChat.count >= 2 else {
-                print("❌ [openChat] Недостаточно участников. Ожидалось минимум 2, найдено: \(usersForChat.count)")
                 return
             }
-            
-            // Убеждаемся, что все три ID были проверены (даже если некоторые совпадают)
-            print("✅ [openChat] Проверены все участники:")
-            print("   - ownerId присутствует: \(addedUserIds.contains(ownerId))")
-            print("   - recipientId присутствует: \(addedUserIds.contains(recipientId))")
-            print("   - senderId присутствует: \(addedUserIds.contains(senderId))")
-            
-            // Сначала загружаем users и conversations
-            print("⏳ [openChat] Загружаем данные через fetchData()...")
+        
             await orderViewModel.fetchData()
-            print("✅ [openChat] fetchData() завершен")
-            print("📊 [openChat] MessageService.allUsers.count: \(MessageService.shared.allUsers.count)")
-            print("📊 [openChat] MessageService.conversations.count: \(MessageService.shared.conversations.count)")
             
-            // Убеждаемся, что все пользователи загружены в MessageService.allUsers
-            // Это важно для правильного создания Conversation с полными данными пользователей
             for user in usersForChat {
                 if !MessageService.shared.allUsers.contains(where: { $0.id == user.id }) {
-                    print("⚠️ [openChat] Пользователь \(user.id) не найден в MessageService.allUsers, обновляем...")
                     // Если пользователь не в списке, ждем обновления
                     await MessageService.shared.getUsers()
                     break
                 }
             }
-            
-            // Обновляем conversations еще раз после загрузки всех пользователей
-            print("⏳ [openChat] Обновляем conversations...")
+
             await MessageService.shared.getConversations()
-            print("✅ [openChat] Conversations обновлены: \(MessageService.shared.conversations.count)")
-            
-            // Очищаем предыдущие выбранные пользователи
+
             orderViewModel.selectedUsers = []
-            
-            // Выбираем пользователей для conversation (передаем уже загруженные User объекты)
             orderViewModel.selectedUsers = usersForChat
-            print("✅ [openChat] selectedUsers установлен, количество: \(orderViewModel.selectedUsers.count)")
             
-            // Ищем существующую conversation или создаем новую
-            print("🔍 [openChat] Ищем существующую conversation...")
             var conversation = await orderViewModel.conversationForUsers()
             
             if conversation == nil {
-                print("❌ [openChat] Conversation не найдена, создаем новую...")
-                // Если conversation не существует, создаем новую групповую
                 conversation = await orderViewModel.createConversation(usersForChat)
                 
-                if conversation != nil {
-                    print("✅ [openChat] Новая conversation создана: \(conversation!.id)")
-                } else {
-                    print("❌ [openChat] Не удалось создать conversation")
-                }
-                
-                // После создания обновляем список conversations, чтобы она была доступна
                 await orderViewModel.fetchData()
-                print("✅ [openChat] fetchData() после создания conversation завершен")
-            } else {
-                print("✅ [openChat] Найдена существующая conversation: \(conversation!.id)")
-                print("   - users: \(conversation!.users.map { "\($0.id):\($0.fullname)" }.joined(separator: ", "))")
             }
             
             guard let conversation = conversation else {
-                print("❌ [openChat] conversation все еще nil, пытаемся найти еще раз...")
-                // Если conversation все еще nil, попробуем еще раз найти после обновления
                 await orderViewModel.fetchData()
                 let foundConversation = await orderViewModel.conversationForUsers()
                 guard let conversation = foundConversation else {
-                    print("❌ [openChat] conversation не найдена после повторного поиска. Выход.")
                     return
                 }
                 
-                print("✅ [openChat] conversation найдена после повторного поиска: \(conversation.id)")
                 self.conversation = conversation
                 self.chatViewModel = ChatViewModel(auth: viewModel, conversation: conversation)
-                print("✅ [openChat] chatViewModel установлен: \(self.chatViewModel?.id ?? "nil")")
                 self.orderViewModel.selectedUsers = []
                 return
             }
             
-            // Создаем ChatViewModel и открываем чат
-            // Так как мы уже на MainActor, можем напрямую установить значения
-            print("🏗️ [openChat] Создаем ChatViewModel...")
             self.conversation = conversation
-            // Создаем ChatViewModel с conversation, чтобы он правильно инициализировался
             let newChatViewModel = ChatViewModel(auth: viewModel, conversation: conversation)
             self.chatViewModel = newChatViewModel
-            print("✅ [openChat] ChatViewModel создан и установлен:")
-            print("   - chatViewModel.id: \(newChatViewModel.id)")
-            print("   - chatViewModel.conversationId: \(newChatViewModel.conversationId ?? "nil")")
-            print("   - chatViewModel != nil: \(self.chatViewModel != nil)")
             self.orderViewModel.selectedUsers = []
-            print("✅ [openChat] Метод завершен. chatViewModel должен открыться в sheet.")
         }
     }
     
@@ -632,20 +609,29 @@ struct OrderDetailView: View {
                 
                 // Загружаем изображение на сервер
                 if let imageURL = try await viewModel.saveOrderImage(data: data) {
-                    // Отправляем в чат
+                    // Отправляем в чат и обновляем соответствующий статус
                     await sendImageToChat(imageURL: imageURL)
-                    
-                    // Обновляем статус
-                    try await viewModel.updateOrderStatus(
-                        type: .isSent,
-                        value: true,
-                        id: currentOrderItem.id,
-                        documentId: currentOrderItem.documentId
-                    )
+
+                    if isSender && !isOwner {
+                        // Фото от отправителя — фиксируем isSent = true
+                        try await viewModel.updateOrderStatus(
+                            type: .isSent,
+                            value: true,
+                            id: currentOrderItem.id,
+                            documentId: currentOrderItem.documentId
+                        )
+                    } else if isRecipient && !isOwner {
+                        // Фото от получателя — фиксируем isDelivered = true
+                        try await viewModel.updateOrderStatus(
+                            type: .isDelivered,
+                            value: true,
+                            id: currentOrderItem.id,
+                            documentId: currentOrderItem.documentId
+                        )
+                    }
                 }
             }
         } catch {
-            print("Ошибка загрузки изображения: \(error.localizedDescription)")
         }
         
         isLoadingImage = false
@@ -655,41 +641,32 @@ struct OrderDetailView: View {
         guard let owner = owner, let recipient = recipient,
               let currentUser = viewModel.currentUser else { return }
         
-        // Сначала обновляем список conversations
         await orderViewModel.fetchData()
         
-        // Создаем групповой чат для троих: owner, recipient, sender
         var usersForChat: [User] = [owner, recipient]
         
-        // Добавляем sender (отправителя)
+        // Добавляем sender
         if let sender = await viewModel.fetchUser(by: orderItem.id) {
             if !usersForChat.contains(where: { $0.id == sender.id }) {
                 usersForChat.append(sender)
             }
         }
         
-        // Убеждаемся, что все три участника в списке
         guard usersForChat.count == 3 else { return }
-        
-        // Выбираем пользователей для conversation
         await orderViewModel.selectUsers(usersForChat.map { $0.id })
-        
-        // Ищем существующую conversation или создаем новую
         var conversation = await orderViewModel.conversationForUsers()
         
         if conversation == nil {
-            // Создаем новую групповую conversation с всеми участниками
             conversation = await orderViewModel.createConversation(usersForChat)
         }
         
         guard let conversation = conversation else { return }
         
-        // Создаем ChatViewModel и отправляем изображение
         let chatVM = ChatViewModel(auth: viewModel, conversation: conversation)
         
         // Создаем DraftMessage с текстом
         let draft = DraftMessage(
-            text: "Посылка передана",
+            text: (currentUser.id == orderItem.recipientId) ? "Посылка получена" : "Посылка передана",
             medias: [],
             recording: nil,
             replyMessage: nil,
@@ -699,7 +676,6 @@ struct OrderDetailView: View {
         // Отправляем сообщение с изображением
         chatVM.sendMessage(draft, usingDefaultImageURL: imageURL)
         
-        // Обновляем conversation в UI
         await MainActor.run {
             self.conversation = conversation
             self.chatViewModel = chatVM
@@ -710,16 +686,14 @@ struct OrderDetailView: View {
     private func confirmPickedUp() async {
         do {
             try await viewModel.updateOrderStatus(
-                type: .isInDelivery,
+                type: .isPickedUp,
                 value: true,
                 id: currentOrderItem.id,
                 documentId: currentOrderItem.documentId
             )
             
-            // Обновляем локальное состояние
-            currentOrderItem.isInDelivery = true
+            currentOrderItem.isPickedUp = true
         } catch {
-            print("Ошибка обновления статуса: \(error.localizedDescription)")
         }
     }
     
@@ -732,10 +706,21 @@ struct OrderDetailView: View {
                 documentId: currentOrderItem.documentId
             )
             
-            // Обновляем локальное состояние
             currentOrderItem.isDelivered = true
         } catch {
-            print("Ошибка обновления статуса: \(error.localizedDescription)")
+        }
+    }
+
+    private func confirmOnTheWay() async {
+        do {
+            try await viewModel.updateOrderStatus(
+                type: .isInDelivery,
+                value: true,
+                id: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            currentOrderItem.isInDelivery = true
+        } catch {
         }
     }
     
@@ -752,6 +737,7 @@ struct OrderDetailView: View {
             
             DispatchQueue.main.async {
                 currentOrderItem.isSent = data["isSent"] as? Bool ?? false
+                currentOrderItem.isPickedUp = data["isPickedUp"] as? Bool ?? false
                 currentOrderItem.isInDelivery = data["isInDelivery"] as? Bool ?? false
                 currentOrderItem.isDelivered = data["isDelivered"] as? Bool ?? false
             }
@@ -779,6 +765,7 @@ struct OrderDetailView: View {
             image: nil,
             price: 1000,
             isSent: false,
+            isPickedUp: false,
             isInDelivery: false,
             isDelivered: false,
             isCompleted: false

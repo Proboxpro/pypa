@@ -4,6 +4,7 @@
 //
 //  Created by Максим Алексеев  on 04.03.2024.
 //  Changed by Руслан Парастаев on 14.04.2024.
+//  Edited by Sasha Soldatov on 29.10.2025.
 //
 
 import Foundation
@@ -39,29 +40,62 @@ class OrderViewModel: ObservableObject {
     }
     
     func conversationForUsers() async -> Conversation? {
-        // search in existing conversations
-        print(111111111)
-        print("Convs: \(MessageService.shared.conversations)")
-        for conversation in MessageService.shared.conversations {
-            print("pass 0")
-            print("\(conversation.users.count) - \(selectedUsers.count)")
-            if conversation.users.count == selectedUsers.count {
-                print("pass 1")
-                if conversation.users.sorted(by: { $0.fullname > $1.fullname }) == self.selectedUsers.sorted(by: { $0.fullname > $1.fullname }) {
-                    print("pass 2")
-                    print(conversation)
-                    return conversation
+        // Ищем существующую conversation с теми же участниками
+        let selectedUserIds = Set(selectedUsers.map { $0.id })
+        
+        let currentUserId = Auth.auth().currentUser?.uid ?? ""
+        let db = Firestore.firestore()
+        
+        do {
+            let snapshot = try await db.collection("conversations")
+                .whereField("users", arrayContains: currentUserId)
+                .getDocuments()
+            
+            for document in snapshot.documents {
+                let data = document.data()
+                if let userIds = data["users"] as? [String],
+                   let isGroup = data["isGroup"] as? Bool,
+                   isGroup == true {
+                    let conversationUserIds = Set(userIds)
+                    
+                    if conversationUserIds == selectedUserIds && conversationUserIds.count == selectedUserIds.count {
+                        await MessageService.shared.getConversations()
+                        
+                        // Ищем в загруженных conversations
+                        if let found = MessageService.shared.conversations.first(where: { $0.id == document.documentID }) {
+                            return found
+                        } else {
+                            let users = selectedUsers.filter { conversationUserIds.contains($0.id) }
+                            if users.count == conversationUserIds.count {
+                                let title = users.map { $0.login }.joined(separator: " ")
+                                let pictureURL = data["pictureURL"] as? String
+                                let picURL = pictureURL.flatMap { URL(string: $0) }
+                                let conversation = Conversation(
+                                    id: document.documentID,
+                                    users: users,
+                                    pictureURL: picURL,
+                                    title: title,
+                                    isGroup: true
+                                )
+                                return conversation
+                            }
+                        }
+                    }
                 }
             }
+        } catch {
         }
         
-        // create new one for group
-        if selectedUsers.count > 1 {
+        for conversation in MessageService.shared.conversations {
+            let conversationUserIds = Set(conversation.users.map { $0.id })
+            if conversationUserIds == selectedUserIds && conversationUserIds.count == selectedUserIds.count {
+                return conversation
+            }
+        }
+        if selectedUsers.count >= 2 {
             return await createConversation(selectedUsers)
         }
         
-        
-        // only create individual when first message is sent, not here (ConversationViewModel)
         return nil
     }
     
