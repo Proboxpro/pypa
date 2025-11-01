@@ -11,8 +11,8 @@ struct HomeView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     
     private let trips: [ListingItem] = [
-        .init(id: UUID().uuidString, ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: "6000 ₽", cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "https://picsum.photos/seed/1/600/400", startdate: "2025-10-02"),
-        .init(id: UUID().uuidString, ownerUid: "u2", ownerName: " ", imageUrl: "", pricePerKillo: "3500 ₽", cityFrom: "Мурманск", cityTo: "Торжок", imageUrls: "https://picsum.photos/seed/2/600/400", startdate: "2025-10-03")
+        .init(id: UUID().uuidString, ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "https://picsum.photos/seed/1/600/400", startdate: "2025-10-02"),
+        .init(id: UUID().uuidString, ownerUid: "u2", ownerName: " ", imageUrl: "", pricePerKillo: 3500, cityFrom: "Мурманск", cityTo: "Торжок", imageUrls: "https://picsum.photos/seed/2/600/400", startdate: "2025-10-03")
     ]
     
     private let deals: [DealItem] = [

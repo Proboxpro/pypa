@@ -110,7 +110,7 @@ struct OrderDetail: View {
                             do {
                                 await orderViewModel.selectUsers([item?.ownerUid ?? "", orderItem.id] + [orderItem.recipientId])
                                 
-                                if let conversation = await orderViewModel.conversationForUsers() {
+                                if let conversation = await orderViewModel.conversationForUsers(orderDocumentId: orderItem.documentId) {
                                     self.conversation = conversation
                                     self.chatViewModel = ChatViewModel(auth: viewModel, conversation: conversation)
                                     self.orderViewModel.selectedUsers = []

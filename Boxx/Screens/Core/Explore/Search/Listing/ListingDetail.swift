@@ -238,7 +238,7 @@ struct ListingDetail: View {
                     .padding(.bottom)
                 HStack{
                     VStack(alignment: .leading){
-                        Text(item.pricePerKillo)
+                        Text(String(item.pricePerKillo))
                             .font(.subheadline)
                             .fontWeight(.semibold)
                         Text("Цена за кг.")

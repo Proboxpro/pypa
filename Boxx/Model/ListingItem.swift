@@ -14,7 +14,7 @@ struct ListingItem: Identifiable, Codable, Hashable{
     let ownerUid: String
     let ownerName: String
     let imageUrl: String
-    var pricePerKillo: String
+    var pricePerKillo: Double
     let cityFrom: String
     let cityTo: String
     var imageUrls: String

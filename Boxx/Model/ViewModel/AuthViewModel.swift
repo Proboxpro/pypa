@@ -295,7 +295,7 @@ class AuthViewModel: ObservableObject {
                 let ownerUid = data["ownerUid"] as? String ?? ""
                 let ownerName = data["ownerName"] as? String ?? ""
                 let imageUrl = data["imageUrl"] as? String ?? ""
-                let pricePerKillo = data["pricePerKillo"] as? String ?? ""
+                let pricePerKillo = data["pricePerKillo"] as? Double ?? 0
                 let cityFrom = data["cityFrom"] as? String ?? ""
                 let cityTo = data["cityTo"] as? String ?? ""
                 let imageUrls = data["imageUrls"] as? String ?? ""
@@ -329,7 +329,7 @@ class AuthViewModel: ObservableObject {
             let ownerUid = data["ownerUid"] as? String ?? ""
             let ownerName = data["ownerName"] as? String ?? ""
             let imageUrl = data["imageUrl"] as? String ?? ""
-            let pricePerKillo = data["pricePerKillo"] as? String ?? ""
+            let pricePerKillo = data["pricePerKillo"] as? Double ?? 0
             let cityFrom = data["cityFrom"] as? String ?? ""
             let cityTo = data["cityTo"] as? String ?? ""
             let imageUrls = data["imageUrls"] as? String ?? ""
@@ -389,7 +389,7 @@ class AuthViewModel: ObservableObject {
                     let ownerUid = data["ownerUid"]as? String ?? ""
                     let ownerName = data["ownerName"]as? String ?? ""
                     let imageUrl = data["imageUrl"]as? String ?? ""
-                    let pricePerKillo = data["pricePerKillo"]as? String ?? ""
+                    let pricePerKillo = data["pricePerKillo"]as? Double ?? 0
                     let cityFrom = data["cityFrom"]as? String ?? ""
                     let cityTo = data["cityTo"]as? String ?? ""
                     let imageUrls = data[ "imageUrls"]as? String ?? ""
@@ -794,7 +794,6 @@ class AuthViewModel: ObservableObject {
         guard let UserId = Auth.auth().currentUser?.uid else { return nil }
         
         do {
-            // Получаем URL изображения, если imageData не пустой, иначе nil
             let url: URL? = imageData.isEmpty ? nil : try await getImageUrl(imageData: imageData)
             
             let doc = Firestore.firestore()
@@ -807,24 +806,41 @@ class AuthViewModel: ObservableObject {
                 .collection("information")
                 .document()
             
-            let cityFromCoordinates = try await CLGeocoder().geocodeAddressString(cityFrom)
-            let cityToCoordinates = try await CLGeocoder().geocodeAddressString(cityTo)
+            var cityFromCoordinates: [CLPlacemark]
+            do {
+                cityFromCoordinates = try await CLGeocoder().geocodeAddressString(cityFrom)
+            } catch {
+                cityFromCoordinates = []
+            }
+            
+            var cityToCoordinates: [CLPlacemark]
+            do {
+                cityToCoordinates = try await CLGeocoder().geocodeAddressString(cityTo)
+            } catch {
+                cityToCoordinates = []
+            }
+            
+            let cityFromLat = cityFromCoordinates.first?.location?.coordinate.latitude ?? 0.0
+            let cityFromLon = cityFromCoordinates.first?.location?.coordinate.longitude ?? 0.0
+            let cityToLat = cityToCoordinates.first?.location?.coordinate.latitude ?? 0.0
+            let cityToLon = cityToCoordinates.first?.location?.coordinate.longitude ?? 0.0
+            
             let orderData: [String: Any] = [
                 "ownerId": ownerId,
                 "recipientId": recipientId,
                 "announcementId": announcementId,
                 "cityFrom": cityFrom,
-                "cityFromLat": cityFromCoordinates[0].location?.coordinate.latitude ?? 0.0,
-                "cityFromLon": cityFromCoordinates[0].location?.coordinate.longitude ?? 0.0,
+                "cityFromLat": cityFromLat,
+                "cityFromLon": cityFromLon,
                 "cityTo": cityTo,
-                "cityToLat": cityToCoordinates[0].location?.coordinate.latitude ?? 0.0,
-                "cityToLon": cityToCoordinates[0].location?.coordinate.longitude ?? 0.0,
+                "cityToLat": cityToLat,
+                "cityToLon": cityToLon,
                 "ownerName": ownerName,
                 "creationTime": Date(),
                 "description": description,
                 "image": url?.absoluteString ?? "",
                 "price": price,
-                "isSent": false,  // При создании новой сделки всегда false
+                "isSent": false,
                 "isPickedUp": false,
                 "isInDelivery": false,
                 "isDelivered": false,
@@ -839,16 +855,17 @@ class AuthViewModel: ObservableObject {
                 ])
                 try await infoDoc.setData(orderData)
             }
+            
             let order = OrderDescriptionItem(
                 id: UserId,
                 documentId: infoDoc.documentID,
                 announcementId: announcementId,
                 ownerId: ownerId,
                 recipientId: recipientId,
-                cityFromLat: cityFromCoordinates[0].location?.coordinate.latitude,
-                cityFromLon: cityFromCoordinates[0].location?.coordinate.longitude,
-                cityToLat: cityToCoordinates[0].location?.coordinate.latitude,
-                cityToLon: cityToCoordinates[0].location?.coordinate.longitude,
+                cityFromLat: cityFromCoordinates.first?.location?.coordinate.latitude,
+                cityFromLon: cityFromCoordinates.first?.location?.coordinate.longitude,
+                cityToLat: cityToCoordinates.first?.location?.coordinate.latitude,
+                cityToLon: cityToCoordinates.first?.location?.coordinate.longitude,
                 cityFrom: cityFrom,
                 cityTo: cityTo,
                 ownerName: ownerName,
@@ -863,8 +880,7 @@ class AuthViewModel: ObservableObject {
                 isCompleted: false)
             return order
         } catch {
-            print("bags \(error.localizedDescription)")
-            return nil
+            throw error
         }
     }
     
@@ -875,16 +891,27 @@ class AuthViewModel: ObservableObject {
                 .document(id)
                 .collection("information")
                 .document(documentId)
+            
+            var updateData: [String: Any] = [:]
+            
             switch type {
             case .isSent:
-                try await infoDoc.updateData([ "isSent": value ])
+                updateData["isSent"] = value
             case .isPickedUp:
-                try await infoDoc.updateData([ "isPickedUp": value ])
+                updateData["isPickedUp"] = value
+                if value {
+                    updateData["pickedUpDate"] = Timestamp(date: Date())
+                }
             case .isInDelivery:
-                try await infoDoc.updateData([ "isInDelivery": value ])
+                updateData["isInDelivery"] = value
             case .isDelivered:
-                try await infoDoc.updateData([ "isDelivered": value ])
+                updateData["isDelivered"] = value
+                if value {
+                    updateData["deliveredDate"] = Timestamp(date: Date())
+                }
             }
+            
+            try await infoDoc.updateData(updateData)
         } catch {
             print("bags \(error.localizedDescription)")
             return
