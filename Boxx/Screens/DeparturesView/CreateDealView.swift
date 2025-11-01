@@ -15,7 +15,6 @@ struct CreateDealView: View {
     let item: ListingItem
     @State private var weight: String = ""
     @State private var recipientLogin: String = ""
-    @State private var isKilloButtonShowing: Bool = false
     @State private var owner: User?
     
     @State private var recipient: User?
@@ -25,9 +24,8 @@ struct CreateDealView: View {
     @State private var showError: Bool = false
     
     var totalprice: Int {
-        let price = item.pricePerKillo.replacingOccurrences(of: " ₽", with: "").replacingOccurrences(of: " ", with: "")
-        guard let priceValue = Int(price), let weightValue = Int(weight) else { return 0 }
-        return priceValue * weightValue
+        guard let weightValue = Double(weight) else { return 0 }
+        return Int(Double(item.pricePerKillo) * weightValue)
     }
     
     
@@ -52,7 +50,7 @@ struct CreateDealView: View {
                     //MARK: HStack с ценой и маршрутом
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(item.pricePerKillo + " ₽")
+                            Text(String(Int(item.pricePerKillo)) + " ₽")
                                 .font(.system(size: 20, weight:.bold))
                                 .foregroundStyle(.white)
                                 .padding(16)
@@ -73,7 +71,7 @@ struct CreateDealView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary)
                         TextField("Введите вес", text: $weight)
-                            .keyboardType(.numberPad)
+                            .keyboardType(.decimalPad)
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(12)
@@ -198,7 +196,21 @@ struct CreateDealView: View {
     }
     
     private func createDeal() async {
-        guard let currentUser = viewModel.currentUser, let owner = owner else { return }
+        guard let currentUser = viewModel.currentUser else {
+            await MainActor.run {
+                errorMessage = "Пользователь не авторизован"
+                showError = true
+            }
+            return
+        }
+        
+        guard let owner = owner else {
+            await MainActor.run {
+                errorMessage = "Информация о путешественнике не загружена"
+                showError = true
+            }
+            return
+        }
         
         await withCheckedContinuation { continuation in
             viewModel.fetchUser(by: recipientLogin) { user in
@@ -224,15 +236,15 @@ struct CreateDealView: View {
         
         do {
             let orderItem = try await viewModel.saveOrder(
-                ownerId: item.ownerUid,      // ID путешественника
-                recipientId: recipient.id,   // ID получателя
-                announcementId: item.id,     // ID объявления о поездке
+                ownerId: item.ownerUid,
+                recipientId: recipient.id,
+                announcementId: item.id,
                 cityFrom: cityFrom,
                 cityTo: cityTo,
                 ownerName: owner.fullname,
-                imageData: emptyImageData,   // Пока пусто, фото загрузится позже
-                description: description,     // "Посылка весом X кг"
-                price: price                 // Итоговая цена
+                imageData: emptyImageData,
+                description: description,
+                price: price
             )
             
             guard let orderItem = orderItem else {
@@ -243,10 +255,9 @@ struct CreateDealView: View {
                 return
             }
             
-            // Сохранение созданного orderItem и переход на экран деталей
             await MainActor.run {
-                createdOrderItem = orderItem  // Сохраняем в @State
-                isNavigatingToDeal = true    // Активируем NavigationLink
+                createdOrderItem = orderItem
+                isNavigatingToDeal = true
             }
         } catch {
             await MainActor.run {
@@ -336,8 +347,8 @@ struct CreateDealView: View {
     }
     
     private var backgroundImage: some View {
-        let urlString = item.imageUrl.isEmpty ? item.imageUrls : item.imageUrl
-        
+        //let urlString = item.imageUrl.isEmpty ? item.imageUrls : item.imageUrl
+        let urlString = item.imageUrls
         return LazyImage(request: ImageRequest(
             url: URL(string: urlString),
             processors: [
@@ -369,7 +380,7 @@ struct CreateDealView: View {
         ownerUid: "123",
         ownerName: "Test User",
         imageUrl: "https://example.com/image.jpg",
-        pricePerKillo: "100",
+        pricePerKillo: 100,
         cityFrom: "Moscow",
         cityTo: "Berlin",
         imageUrls: "https://example.com/image.jpg",

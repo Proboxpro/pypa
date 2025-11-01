@@ -187,13 +187,13 @@ struct OrdersList: View {
         
         // Если не нашли в Firestore, создаем минимальный ListingItem из OrderDescriptionItem
         if listing == nil {
-            let priceString = order.price.map { String($0) } ?? "0"
+            let priceDouble = order.price.map { Double($0) } ?? 0
             listing = ListingItem(
                 id: order.announcementId,
                 ownerUid: order.ownerId,
                 ownerName: order.ownerName,
                 imageUrl: order.image?.absoluteString ?? "",
-                pricePerKillo: priceString,
+                pricePerKillo: priceDouble,
                 cityFrom: order.cityFrom,
                 cityTo: order.cityTo,
                 imageUrls: order.image?.absoluteString ?? "",

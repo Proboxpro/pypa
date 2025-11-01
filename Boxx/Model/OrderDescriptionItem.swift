@@ -38,6 +38,9 @@ struct OrderDescriptionItem: Identifiable, Codable, Hashable {
     var isInDelivery: Bool
     var isDelivered: Bool
     
+    var pickedUpDate: Date?
+    var deliveredDate: Date?
+    
     let isCompleted: Bool
 }
 

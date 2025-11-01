@@ -152,19 +152,28 @@ struct OrderDetailView: View {
         }
         .edgesIgnoringSafeArea(.all)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 12) {
+            ZStack(alignment: .bottom) {
+                statusBarSection
+                    .zIndex(1)
+                
+                // Чат секция - визуально выше и на более высоком слое, чтобы выглядывать поверх статус-бара
                 if let owner = owner, let recipient = recipient, let sender = sender {
-                    chatSection(owner: owner, recipient: recipient, sender: sender)
+                    chatSectionWithoutButton(owner: owner, recipient: recipient, sender: sender)
+                        .offset(y: -75)
+                        .zIndex(0)
+                        .overlay(alignment: .topLeading) {
+                            // Кнопка чата - на самом верхнем слое для гарантированного получения нажатий
+                            chatButton
+                                .padding(.leading, 16)
+                                .padding(.top, 16)
+                                .offset(x:-5, y: -70)
+                        }
                 }
-//                if currentOrderItem.isSent || currentOrderItem.isPickedUp || currentOrderItem.isInDelivery || currentOrderItem.isDelivered {
-                    statusBarSection
-                //}
             }
-            .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 12)
             .background(Color(.systemBackground))
-            .shadow(radius: 8, y: -2)
+            //.shadow(radius: 8, y: -2)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden(true)
@@ -185,34 +194,13 @@ struct OrderDetailView: View {
         }
     }
     
-    // MARK: - Chat Section
+    // MARK: - Chat Section без кнопки
     @ViewBuilder
-    private func chatSection(owner: User, recipient: User, sender: User) -> some View {
-        HStack(spacing: 16) {
-            
-            // Кнопка чата
-            Button {
-                openChat()
-            } label: {
-                Image(systemName: "ellipsis.message")
-                    .foregroundStyle(.black)
-                    .frame(width: 32, height: 32)
-                    .background {
-                        Circle()
-                            .fill(.white)
-                    }
-            }
-            .sheet(item: $chatViewModel, onDismiss: {
-                orderViewModel.fetchData()
-            }) { chatViewModel in
-                NavigationView {
-                    ChatViewContainer()
-                        .environmentObject(chatViewModel)
-                        .navigationTitle("Чат")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .navigationBarBackButtonHidden(false)
-                }
-            }
+    private func chatSectionWithoutButton(owner: User, recipient: User, sender: User) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Пустое место для кнопки (32px + 16px spacing)
+            Color.clear
+                .frame(width: 32, height: 32)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(owner.fullname)
@@ -240,8 +228,40 @@ struct OrderDetailView: View {
             .frame(width: 50, height: 50)
             .clipShape(Circle())
         }
+        .offset(y: -30)
+        .frame(height: 120)
         .padding(16)
         .background(Color.baseMint).cornerRadius(16)
+    }
+    
+    // MARK: - Кнопка чата (отдельно, на верхнем слое)
+    private var chatButton: some View {
+        Button {
+            print("🔵 Кнопка чата нажата!")
+            openChat()
+        } label: {
+            Image(systemName: "ellipsis.message")
+                .foregroundStyle(.black)
+                .frame(width: 32, height: 32)
+                .background {
+                    Circle()
+                        .fill(.white)
+                }
+        }
+        .frame(width: 44, height: 44)
+        .contentShape(Circle())
+        .allowsHitTesting(true)
+        .sheet(item: $chatViewModel, onDismiss: {
+            orderViewModel.fetchData()
+        }) { chatViewModel in
+            NavigationView {
+                ChatViewContainer()
+                    .environmentObject(chatViewModel)
+                    .navigationTitle("Чат")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarBackButtonHidden(false)
+            }
+        }
     }
     
     // MARK: - раздел с отправкой посылки (у sender)
@@ -328,7 +348,7 @@ struct OrderDetailView: View {
         }
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(radius: 8, y: 5)
+        //.shadow(radius: 8, y: 5)
     }
     
     // MARK: - кнопка подтверждения у owner
@@ -391,62 +411,103 @@ struct OrderDetailView: View {
                     Spacer()
                     // Линия между "Забрал" и "Доставка" - зеленая после подтверждения забора (isPickedUp)
                     Rectangle()
-                        .foregroundColor(currentOrderItem.isPickedUp ? .green : .gray)
+                        .foregroundColor(currentOrderItem.isPickedUp ? .baseMint : .black)
                         .frame(width: 128, height: 2)
-                        .padding(.bottom, 36)
+                        .padding(.bottom, 62)
                     // Линия между "Доставка" и "Получено" - зеленая когда recipient подтвердил (isDelivered)
                     Rectangle()
-                        .foregroundColor(currentOrderItem.isDelivered ? .green : .gray)
+                        .foregroundColor(currentOrderItem.isDelivered ? .baseMint : .black)
                         .frame(width: 128, height: 2)
-                        .padding(.bottom, 36)
+                        .padding(.bottom, 62)
                     Spacer()
                 }
                 
-                HStack {
-                    // Забрал - подсвечивается только после подтверждения owner (isPickedUp)
-                    VStack(spacing: 16) {
-                        Image(systemName: "hand.raised.square.on.square.fill")
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background {
+                ZStack {
+                    HStack {
+                        // Забрал - подсвечивается только после подтверждения owner (isPickedUp)
+                        VStack(spacing: 16) {
+                            ZStack {
                                 Circle()
-                                    .fill(currentOrderItem.isPickedUp ? .green : .gray)
+                                    .fill(.tabBackground)
+                                    .frame(width: 32, height: 32)
+                                Image(currentOrderItem.isPickedUp ? "box_hand_mint" : "box_hand_black")
+                                    .resizable().scaledToFill()
+                                    .frame(width: 24, height: 24)
+                                    
+                            
+                                }
+                            Text("Забрал")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(currentOrderItem.isPickedUp ? .baseMint : .black)
+                            
+                            // Фиксированное пространство для даты
+                            Group {
+                                if let pickedUpDate = currentOrderItem.pickedUpDate {
+                                    Text(pickedUpDate.convertToMonthYearFormat())
+                                        .font(.system(size: 10, weight: .regular))
+                                        .foregroundStyle(.gray)
+                                } else {
+                                    Text(" ")
+                                        .font(.system(size: 10, weight: .regular))
+                                        .opacity(0)
+                                }
                             }
-                        Text("Забрал")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.black)
+                            .frame(height: 12)
+                        }
+                        
+                        Spacer()
+                        
+                        // Получено (isDelivered)
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(.tabBackground)
+                                    .frame(width: 32, height: 32)
+                                Image(currentOrderItem.isDelivered ? "box_checkmark_mint" : "box_checkmark_black")
+                                    .resizable().scaledToFill()
+                                    .frame(width: 18, height: 18)
+                                    
+                            }
+                            Text("Получено")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(currentOrderItem.isDelivered ? .baseMint : .black)
+                            
+                            // Фиксированное пространство для даты
+                            Group {
+                                if let deliveredDate = currentOrderItem.deliveredDate {
+                                    Text(deliveredDate.convertToMonthYearFormat())
+                                        .font(.system(size: 10, weight: .regular))
+                                        .foregroundStyle(.gray)
+                                } else {
+                                    Text(" ")
+                                        .font(.system(size: 10, weight: .regular))
+                                        .opacity(0)
+                                }
+                            }
+                            .frame(height: 12)
+                        }
                     }
                     
-                    Spacer()
-                    
-                    // Доставка (isInDelivery) - подсвечивается когда owner подтвердил
+                    // Доставка (isInDelivery)
                     VStack(spacing: 16) {
-                        Image(systemName:"shippingbox.and.arrow.backward.fill")
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background {
-                                Circle()
-                                    .fill(currentOrderItem.isInDelivery ? .green : .gray)
-                            }
+                        ZStack {
+                            Circle()
+                                .fill(.tabBackground)
+                                .frame(width: 32, height: 32)
+                            Image(currentOrderItem.isInDelivery ? "box_with_clock_mint" : "box_with_clock_black")
+                                .resizable().scaledToFill()
+                                .frame(width: 20, height: 20)
+                                
+                        }
                         Text("Доставка")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.black)
-                    }
-                    
-                    Spacer()
-                    
-                    // Получено (isDelivered)
-                    VStack(spacing: 16) {
-                        Image("checkmark.circle.badge.airplane.fill")
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background {
-                                Circle()
-                                    .fill(currentOrderItem.isDelivered ? .green : .gray)
-                            }
-                        Text("Получено")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(currentOrderItem.isInDelivery ? .baseMint : .black)
+                        
+                        // Фиксированное пространство для выравнивания
+                        Text(" ")
+                            .font(.system(size: 10, weight: .regular))
+                            .opacity(0)
+                            .frame(height: 12)
                     }
                 }
             }
@@ -454,11 +515,11 @@ struct OrderDetailView: View {
         .padding(24)
         .background(Color(.systemBackground))
         .cornerRadius(16)
-        .shadow(radius: 8, y: 5)
+        //.shadow(radius: 8, y: 5)
     }
     
     private var backgroundImage: some View {
-        let urlString = listingItem.imageUrl.isEmpty ? listingItem.imageUrls : listingItem.imageUrl
+        let urlString = listingItem.imageUrls
         
         return LazyImage(request: ImageRequest(
             url: URL(string: urlString),
@@ -487,10 +548,13 @@ struct OrderDetailView: View {
     }
     
     private func openChat() {
+        print("🔵 openChat() вызвана")
         Task { @MainActor in
             guard let currentUser = viewModel.currentUser else {
+                print("❌ openChat: currentUser is nil")
                 return
             }
+            print("✅ openChat: currentUser найден")
             
             // Загружаем всех участников, если они еще не загружены
             if owner == nil {
@@ -569,17 +633,17 @@ struct OrderDetailView: View {
             orderViewModel.selectedUsers = []
             orderViewModel.selectedUsers = usersForChat
             
-            var conversation = await orderViewModel.conversationForUsers()
+            var conversation = await orderViewModel.conversationForUsers(orderDocumentId: orderItem.documentId)
             
             if conversation == nil {
-                conversation = await orderViewModel.createConversation(usersForChat)
+                conversation = await orderViewModel.createConversation(usersForChat, orderDocumentId: orderItem.documentId)
                 
                 await orderViewModel.fetchData()
             }
             
             guard let conversation = conversation else {
                 await orderViewModel.fetchData()
-                let foundConversation = await orderViewModel.conversationForUsers()
+                let foundConversation = await orderViewModel.conversationForUsers(orderDocumentId: orderItem.documentId)
                 guard let conversation = foundConversation else {
                     return
                 }
@@ -654,10 +718,10 @@ struct OrderDetailView: View {
         
         guard usersForChat.count == 3 else { return }
         await orderViewModel.selectUsers(usersForChat.map { $0.id })
-        var conversation = await orderViewModel.conversationForUsers()
+        var conversation = await orderViewModel.conversationForUsers(orderDocumentId: orderItem.documentId)
         
         if conversation == nil {
-            conversation = await orderViewModel.createConversation(usersForChat)
+            conversation = await orderViewModel.createConversation(usersForChat, orderDocumentId: orderItem.documentId)
         }
         
         guard let conversation = conversation else { return }
@@ -692,7 +756,10 @@ struct OrderDetailView: View {
                 documentId: currentOrderItem.documentId
             )
             
-            currentOrderItem.isPickedUp = true
+            await MainActor.run {
+                currentOrderItem.isPickedUp = true
+                currentOrderItem.pickedUpDate = Date()
+            }
         } catch {
         }
     }
@@ -706,7 +773,10 @@ struct OrderDetailView: View {
                 documentId: currentOrderItem.documentId
             )
             
-            currentOrderItem.isDelivered = true
+            await MainActor.run {
+                currentOrderItem.isDelivered = true
+                currentOrderItem.deliveredDate = Date()
+            }
         } catch {
         }
     }
@@ -740,6 +810,14 @@ struct OrderDetailView: View {
                 currentOrderItem.isPickedUp = data["isPickedUp"] as? Bool ?? false
                 currentOrderItem.isInDelivery = data["isInDelivery"] as? Bool ?? false
                 currentOrderItem.isDelivered = data["isDelivered"] as? Bool ?? false
+                
+                // Читаем даты из Firestore
+                if let pickedUpTimestamp = data["pickedUpDate"] as? Timestamp {
+                    currentOrderItem.pickedUpDate = pickedUpTimestamp.dateValue()
+                }
+                if let deliveredTimestamp = data["deliveredDate"] as? Timestamp {
+                    currentOrderItem.deliveredDate = deliveredTimestamp.dateValue()
+                }
             }
         }
     }
@@ -775,7 +853,7 @@ struct OrderDetailView: View {
             ownerUid: "owner1",
             ownerName: "Иван",
             imageUrl: "",
-            pricePerKillo: "100",
+            pricePerKillo: 100,
             cityFrom: "Москва",
             cityTo: "Санкт-Петербург",
             imageUrls: "",

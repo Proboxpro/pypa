@@ -39,8 +39,8 @@ class OrderViewModel: ObservableObject {
         }
     }
     
-    func conversationForUsers() async -> Conversation? {
-        // Ищем существующую conversation с теми же участниками
+    func conversationForUsers(orderDocumentId: String? = nil) async -> Conversation? {
+        // Ищем существующую conversation с теми же участниками и тем же orderDocumentId
         let selectedUserIds = Set(selectedUsers.map { $0.id })
         
         let currentUserId = Auth.auth().currentUser?.uid ?? ""
@@ -57,8 +57,17 @@ class OrderViewModel: ObservableObject {
                    let isGroup = data["isGroup"] as? Bool,
                    isGroup == true {
                     let conversationUserIds = Set(userIds)
+                    let conversationOrderId = data["orderDocumentId"] as? String
                     
+                    // Сравниваем участников и orderDocumentId (если он указан)
                     if conversationUserIds == selectedUserIds && conversationUserIds.count == selectedUserIds.count {
+                        // Если orderDocumentId указан, то чат должен иметь тот же orderDocumentId
+                        if let orderDocumentId = orderDocumentId {
+                            if conversationOrderId != orderDocumentId {
+                                continue // Пропускаем чаты с другими orderDocumentId
+                            }
+                        }
+                        
                         await MessageService.shared.getConversations()
                         
                         // Ищем в загруженных conversations
@@ -86,40 +95,53 @@ class OrderViewModel: ObservableObject {
         } catch {
         }
         
+        // Также проверяем в загруженных conversations (если там есть orderDocumentId)
         for conversation in MessageService.shared.conversations {
             let conversationUserIds = Set(conversation.users.map { $0.id })
             if conversationUserIds == selectedUserIds && conversationUserIds.count == selectedUserIds.count {
+                // Если orderDocumentId указан, нужно проверить его в Firestore
+                // Для простоты пропускаем этот путь, если orderDocumentId указан
+                // и продолжаем к созданию нового чата
+                if orderDocumentId != nil {
+                    continue
+                }
                 return conversation
             }
         }
+        
         if selectedUsers.count >= 2 {
-            return await createConversation(selectedUsers)
+            return await createConversation(selectedUsers, orderDocumentId: orderDocumentId)
         }
         
         return nil
     }
     
-    func createConversation(_ users: [User]) async -> Conversation? {
+    func createConversation(_ users: [User], orderDocumentId: String? = nil) async -> Conversation? {
         //        let pictureURL = await UploadingManager.uploadImageMedia(picture)
         if let image = await createPictureForUsers(),
            let data = image.jpegData(compressionQuality: 0.8),
            let url = try? await authViewModel.saveConversationImage(data: data) {
-            return await createConversation(users, url)
+            return await createConversation(users, pictureURL: url, orderDocumentId: orderDocumentId)
         } else {
-            return await createConversation(users, nil)
+            return await createConversation(users, pictureURL: nil, orderDocumentId: orderDocumentId)
         }
     }
     
-    private func createConversation(_ users: [User], _ pictureURL: URL?) async -> Conversation? {
+    private func createConversation(_ users: [User], pictureURL: URL?, orderDocumentId: String?) async -> Conversation? {
         let allUserIds = users.map { $0.id }
         let title = users.map { $0.login }.joined(separator: " ")
-        let dict: [String : Any] = [
+        var dict: [String : Any] = [
             "users": allUserIds,
             //            "usersUnreadCountInfo": Dictionary(uniqueKeysWithValues: allUserIds.map { ($0, 0) } ),
             "isGroup": true,
             "pictureURL": pictureURL?.absoluteString ?? "",
             "title": title
         ]
+        
+        // Добавляем orderDocumentId если он указан
+        if let orderDocumentId = orderDocumentId {
+            dict["orderDocumentId"] = orderDocumentId
+        }
         
         return await withCheckedContinuation { continuation in
             var ref: DocumentReference? = nil

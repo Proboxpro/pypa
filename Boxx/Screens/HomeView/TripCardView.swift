@@ -30,7 +30,7 @@ struct TripCardView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .lineLimit(1)
                 HStack {
-                    Text("\(item.pricePerKillo)")
+                    Text(String(Int(item.pricePerKillo)) + " ₽")
                         .foregroundColor(.white)
                         .font(.system(size: 14, weight: .semibold))
                     Spacer()
@@ -70,7 +70,7 @@ struct TripCardView: View {
     
     struct TripCardView_Previews: PreviewProvider {
         static var previews: some View {
-            TripCardView(width: 240, item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: "6000 ₽", cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
+            TripCardView(width: 240, item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
         }
     }
     
