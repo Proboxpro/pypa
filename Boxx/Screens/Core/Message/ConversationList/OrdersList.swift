@@ -197,6 +197,7 @@ struct OrdersList: View {
                 cityFrom: order.cityFrom,
                 cityTo: order.cityTo,
                 imageUrls: order.image?.absoluteString ?? "",
+                description: order.description ?? "",
                 startdate: "",
                 conversation: nil
             )

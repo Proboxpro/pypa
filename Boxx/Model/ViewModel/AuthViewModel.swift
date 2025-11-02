@@ -300,7 +300,8 @@ class AuthViewModel: ObservableObject {
                 let cityTo = data["cityTo"] as? String ?? ""
                 let imageUrls = data["imageUrls"] as? String ?? ""
                 let startdate = data["startdate"] as? String ?? ""
-                let order = ListingItem(id: id, ownerUid: ownerUid, ownerName: ownerName, imageUrl: imageUrl, pricePerKillo: pricePerKillo, cityFrom: cityFrom, cityTo: cityTo, imageUrls: imageUrls, startdate: startdate)
+                let description = data["descrtiption"] as? String ?? ""
+                let order = ListingItem(id: id, ownerUid: ownerUid, ownerName: ownerName, imageUrl: imageUrl, pricePerKillo: pricePerKillo, cityFrom: cityFrom, cityTo: cityTo, imageUrls: imageUrls, description: description, startdate: startdate)
                 orders.append(order)
             }
         } catch {
@@ -334,6 +335,7 @@ class AuthViewModel: ObservableObject {
             let cityTo = data["cityTo"] as? String ?? ""
             let imageUrls = data["imageUrls"] as? String ?? ""
             let startdate = data["startdate"] as? String ?? ""
+            let description = data["descrtiption"] as? String ?? ""
             let conversation = data["conversation"] as? FirestoreConversation
             
             return ListingItem(
@@ -345,6 +347,7 @@ class AuthViewModel: ObservableObject {
                 cityFrom: cityFrom,
                 cityTo: cityTo,
                 imageUrls: imageUrls,
+                description: description,
                 startdate: startdate,
                 conversation: conversation
             )
@@ -394,8 +397,9 @@ class AuthViewModel: ObservableObject {
                     let cityTo = data["cityTo"]as? String ?? ""
                     let imageUrls = data[ "imageUrls"]as? String ?? ""
                     let startdate = data[ "startdate"]as? String ?? ""
+                    let description = data["descrtiption"] as? String ?? ""
                     let conversation = data["conversation"] as? FirestoreConversation
-                    var myorder = ListingItem(id: id, ownerUid: ownerUid, ownerName: ownerName, imageUrl: imageUrl, pricePerKillo: pricePerKillo,cityFrom: cityFrom, cityTo: cityTo, imageUrls: imageUrls, startdate: startdate, conversation: conversation)
+                    var myorder = ListingItem(id: id, ownerUid: ownerUid, ownerName: ownerName, imageUrl: imageUrl, pricePerKillo: pricePerKillo,cityFrom: cityFrom, cityTo: cityTo, imageUrls: imageUrls, description: description, startdate: startdate, conversation: conversation)
                     print(cityFrom)
                     
                     //MARK: - Debug
