@@ -15,6 +15,7 @@ struct CreateDealView: View {
     let item: ListingItem
     @State private var weight: String = ""
     @State private var recipientLogin: String = ""
+    @State private var showingLoginSearch: Bool = false
     @State private var owner: User?
     
     @State private var recipient: User?
@@ -22,6 +23,7 @@ struct CreateDealView: View {
     @State private var isNavigatingToDeal: Bool = false
     @State private var errorMessage: String?
     @State private var showError: Bool = false
+    @FocusState private var isWeightFieldFocused: Bool
     
     var totalprice: Int {
         guard let weightValue = Double(weight) else { return 0 }
@@ -65,36 +67,63 @@ struct CreateDealView: View {
                     }
                 }
                 //MARK: HStack с двумя полями ввода кг и получателем
-                VStack(spacing: 16) {
+                HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Кол-во КГ")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary)
                         TextField("Введите вес", text: $weight)
                             .keyboardType(.decimalPad)
+                            .focused($isWeightFieldFocused)
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(12)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Готово") {
+                                        isWeightFieldFocused = false
+                                    }
+                                }
+                            }
                     }
                     
+                    
+                    
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Логин получателя")
+                        Text("Получатель")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary)
-                        TextField("Введите логин получателя", text: $recipientLogin)
-                            .autocapitalization(.none)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
+                        Button {
+                            showingLoginSearch.toggle()
+                        } label: {
+                            Text(recipientLogin.isEmpty ? "Выбрать" : recipientLogin)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 120, height: 50)
+                                .background(Color.baseMint)
+                                .cornerRadius(16)
+                            
+                        }
+                              
+                        
+//                        Text("Логин получателя")
+//                            .font(.system(size: 14, weight: .semibold))
+//                            .foregroundStyle(.primary)
+//                        TextField("Введите логин получателя", text: $recipientLogin)
+//                            .autocapitalization(.none)
+//                            .padding()
+//                            .background(Color(.systemGray6))
+//                            .cornerRadius(12)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.vertical, 20)
                 
                 if let owner = owner {
                     travelerProfileCard(owner: owner)
                         .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 20)
                 }
                 
                 Spacer(minLength: 100)
@@ -169,6 +198,10 @@ struct CreateDealView: View {
         } message: {
             Text(errorMessage ?? "Произошла ошибка")
         }
+        .sheet(isPresented: $showingLoginSearch) {
+            UserSearchView(selectedUser: $recipient, selectedLogin: $recipientLogin)
+                .environmentObject(viewModel)
+        }
         
     }
     
@@ -196,7 +229,7 @@ struct CreateDealView: View {
     }
     
     private func createDeal() async {
-        guard let currentUser = viewModel.currentUser else {
+        guard viewModel.currentUser != nil else {
             await MainActor.run {
                 errorMessage = "Пользователь не авторизован"
                 showError = true
@@ -212,10 +245,13 @@ struct CreateDealView: View {
             return
         }
         
-        await withCheckedContinuation { continuation in
-            viewModel.fetchUser(by: recipientLogin) { user in
-                self.recipient = user
-                continuation.resume()
+        // Use already selected recipient from UserSearchView, or fetch by login if needed
+        if recipient == nil && !recipientLogin.isEmpty {
+            await withCheckedContinuation { continuation in
+                viewModel.fetchUser(by: recipientLogin) { user in
+                    self.recipient = user
+                    continuation.resume()
+                }
             }
         }
         
@@ -316,11 +352,15 @@ struct CreateDealView: View {
             Divider()
                 .padding(.vertical, 8)
             
+            if let description = item.description {
+                Text(description)
+    //            Text("Еду на поезде, готов взять с собой до 10 кг, аллергий нет, уезжаю с Ладожского :) Могу захватить животных.")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white)
+                    .lineLimit(nil)
+            }
             //MARK: - traveller message
-            Text("Еду на поезде, готов взять с собой до 10 кг, аллергий нет, уезжаю с Ладожского :) Могу захватить животных.")
-                .font(.system(size: 14))
-                .foregroundColor(.white)
-                .lineLimit(nil)
+            
         }
         .padding(16)
         .background(
@@ -341,7 +381,7 @@ struct CreateDealView: View {
             }
             .frame(width: 60, height: 60)
             .clipShape(Circle())
-            .offset(x: -140, y: -80)
+            .offset(x: -140, y: -70)
         }
         
     }
@@ -384,6 +424,7 @@ struct CreateDealView: View {
         cityFrom: "Moscow",
         cityTo: "Berlin",
         imageUrls: "https://example.com/image.jpg",
+        description: "описание предложения",
         startdate: "2025-01-01",
         conversation: nil,
         isAuthorized: false,

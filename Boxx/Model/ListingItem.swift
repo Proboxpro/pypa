@@ -18,6 +18,7 @@ struct ListingItem: Identifiable, Codable, Hashable{
     let cityFrom: String
     let cityTo: String
     var imageUrls: String
+    var description: String?
     var startdate: String
     var conversation: FirestoreConversation?
     var isAuthorized: Bool = false
