@@ -1,9 +1,10 @@
 //
 //  MainSearch.swift
 //  Boxx
+//  Created by namerei on 26.10.2025.
 //
-//  Created by Supunme Nanayakkarami on 16.11.2023.
-//
+//  Edited by Supunme Nanayakkarami on 4.11.2025.
+
 
 import SwiftUI
 
