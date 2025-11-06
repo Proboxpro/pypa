@@ -16,6 +16,7 @@ struct CityView: View {
         VStack(alignment: .leading){
                 HStack(spacing: 15){
                     Text(city.name)
+                        .foregroundStyle(.white)
                        
                 }
                 .frame (height: 44)

@@ -27,6 +27,7 @@ struct SearchAndFilter: View {
                 Image(systemName:"line.3.horizontal.decrease.circle")
                     .foregroundStyle(.black)
             })
+            .allowsHitTesting(false)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
@@ -36,6 +37,7 @@ struct SearchAndFilter: View {
                 .shadow(color: .black.opacity(0.4), radius: 2)
         }
         .padding()
+        .contentShape(Rectangle())
         .onTapGesture {
             withAnimation{
                 showDestinationSearchView.toggle()
@@ -88,7 +90,6 @@ struct SearchAndFilterWithCity: View {
         withAnimation {
             SearchBarIsEmpty = true
         }
-        print("SEARCHBAR IS EMPTY:\(SearchBarIsEmpty)")
     }
 }
 

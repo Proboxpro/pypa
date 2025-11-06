@@ -35,6 +35,9 @@ struct DestinationSearchView: View {
     @State private var numbkilo = 0
 
     @State var search = ""
+    
+    @State private var errorMessage: String?
+    @State private var showError: Bool = false
 
     var filtereduser: [City] {
         guard !search.isEmpty else { return viewModel.allPosibleCityes}
@@ -44,11 +47,31 @@ struct DestinationSearchView: View {
     @State private var selectedOption: DestinationSearchOptions = .location
         
     var body: some View {
-        VStack{
-            DeleteSearchInputView()
-            DestinationView()
-            DateSection()
-            SearchButton()
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation {
+                        show.toggle()
+                    }
+                }
+            
+            VStack {
+                DeleteSearchInputView()
+                DestinationView()
+                DateSection()
+                SearchButton()
+            }
+            .background(Color(.white))
+            .cornerRadius(20)
+            .padding()
+            .shadow(radius: 20)
+            .contentShape(Rectangle())
+        }
+        .alert("Ошибка", isPresented: $showError) {
+            Button("ОК") { }
+        } message: {
+            Text(errorMessage ?? "Произошла ошибка")
         }
     }
     
@@ -88,12 +111,26 @@ struct DestinationSearchView: View {
                     Text("Куда отправляем?")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .foregroundStyle(.white)
                     
                     HStack(alignment: .center){
                         Image(systemName: "magnifyingglass")
-                        TextField("Город получения", text: self.$search)
-                            .font(.subheadline)
-                            .fontWeight(.semibold )
+                            .foregroundStyle(.white)
+                        ZStack(alignment: .leading) {
+                            if search.isEmpty {
+                                Text("Город получения")
+                                    .foregroundStyle(.white)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                            }
+                            TextField("", text: self.$search)
+                                .textFieldStyle(.plain)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .autocorrectionDisabled()
+                        }
+                            
                     } .frame(height: 44 )
                         .padding(.horizontal)
                         .overlay{RoundedRectangle(cornerRadius: 8)
@@ -104,6 +141,7 @@ struct DestinationSearchView: View {
                         if  self.viewModel.allPosibleCityes.filter({$0.name.lowercased().contains(self.search.lowercased())}).count == 0{
                             VStack(alignment: .leading){
                                 Text("Не найден")
+                                    .foregroundStyle(.white)
                             }
                             
                             
@@ -146,22 +184,25 @@ struct DestinationSearchView: View {
                 Text ("Когда хотите отправить?")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundStyle(.white)
                 Text ("Укажите примерные даты")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
                 VStack{
-                    DatePicker("Начиная", selection: $parameters.startDate, displayedComponents: .date)
+                    DatePicker("Начиная", selection: $parameters.startDate, in: Date()..., displayedComponents: .date)
                         .onChange(of: parameters.startDate) { oldValue, newValue in
                             parameters.datesIsSelected = true
                         }
+                        
                     Divider()
+                        .background(.white)
                     DatePicker("До", selection:$parameters.endDate , displayedComponents: .date)
                         .onChange(of: parameters.endDate) { oldValue, newValue in
                             parameters.datesIsSelected = true
                         }
                 }
-                .foregroundStyle(.gray)
+                .foregroundStyle(.white)
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 
@@ -192,9 +233,13 @@ struct DestinationSearchView: View {
             Task {
 //                print("All city's \(viewModel.city.compactMap({$0.name}))")
 //                print("CITY's: \(filtereduser.compactMap({$0.name}))" )
-                
+                guard !search.isEmpty else {
+                    errorMessage = "Введите город получения"
+                    showError = true
+                    return
+                }
                 if filtereduser.compactMap({$0.name}).filter({$0 == search}).isEmpty {
-                    print("NOTHING FOUND")
+                    // Город не найден
                 } else {
 //                    print("Search: \(search)")
 //                    print("GO TO MAINSEARCH")
@@ -211,7 +256,7 @@ struct DestinationSearchView: View {
             }
         } label: {
             HStack{
-                Text ("Search")
+                Text ("Найти отправления")
                     .fontWeight (.semibold)
                 Image (systemName: "arrow.right")
                 
@@ -220,7 +265,7 @@ struct DestinationSearchView: View {
             .frame(width:UIScreen.main.bounds.width-32, height: 48)
             
         }
-        .background (Color (.black))
+        .background (Color (.baseMint))
         .cornerRadius (10)
         .padding(.top,25)
         //        }
@@ -244,10 +289,10 @@ struct CollapsidDestModifier: ViewModifier {
     func body (content: Content) -> some View {
         content
             .padding()
-            .background(.white)
+            .background { Color(.baseMint) }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding()
-            .shadow(radius: 10)
+            //.shadow(radius: 10)
     }
 }
 
@@ -258,9 +303,10 @@ struct CollapsedPickerView: View {
         VStack{
             HStack{
                 Text(title)
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(.white)
                 Spacer()
                 Text(description)
+                    .foregroundStyle(.white)
             }
             .fontWeight(.semibold)
             .font(.subheadline)
