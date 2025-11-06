@@ -50,6 +50,16 @@ struct OrderDetailView: View {
         currentUserId == orderItem.recipientId
     }
     
+    private var mapView: MapView {
+        let fromLat = orderItem.cityFromLat ?? 0
+        let fromLon = orderItem.cityFromLon ?? 0
+        let toLat = orderItem.cityToLat ?? 0
+        let toLon = orderItem.cityToLon ?? 0
+        
+        return MapView(coordinates: ((fromLat, fromLon), (toLat, toLon)),
+                names: (orderItem.cityFrom, orderItem.cityTo))
+    }
+    
     init(orderItem: OrderDescriptionItem, listingItem: ListingItem, onDismiss: (() -> Void)? = nil) {
         self.orderItem = orderItem
         self.listingItem = listingItem
@@ -61,8 +71,8 @@ struct OrderDetailView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView(showsIndicators: false) {
+                
                 ZStack(alignment: .bottomLeading) {
-                    // Верхняя секция с изображением города
                     backgroundImage
                         .frame(width: SizeConstants.screenWidth, height: SizeConstants.avatarHeight)
                         .clipped()
@@ -115,40 +125,50 @@ struct OrderDetailView: View {
                         }
                     }
                 }
-                
-                // Секция с кнопкой чата перенесена в .safeAreaInset(edge: .bottom)
-                
-                // Секция "Отдайте посылку" - только для sender, когда посылка еще не отправлена
-                if isSender && !isOwner && !currentOrderItem.isSent {
-                    // Отправитель должен загрузить фото посылки
-                    sendParcelSection
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
+                ZStack {
+                    mapView
+                        .frame(height: 270)
+                        .padding(.top, -10)
+                        .zIndex(0)
+                    
+                    
+                    // Секция "Отдайте посылку" - только для sender, когда посылка еще не отправлена
+                    if isSender && !isOwner && !currentOrderItem.isSent {
+                        // Отправитель должен загрузить фото посылки
+                        sendParcelSection
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .zIndex(1)
+                    }
+                    
+                    // Кнопка подтверждения для owner: "Забрал" — после того, как sender отправил фото
+                    if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isPickedUp {
+                        confirmPickedUpButton
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .zIndex(1)
+                    }
+                    
+                    // Кнопка подтверждения для owner: "Я в пути" — после того, как подтвердил забор
+                    if isOwner && !isSender && currentOrderItem.isPickedUp && !currentOrderItem.isInDelivery {
+                        confirmOnTheWayButton
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .zIndex(1)
+                    }
+                    
+                    // Секция для recipient: загрузка фото получения, затем меняем статус isDelivered
+                    if isRecipient && !isSender && !isOwner && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered {
+                        receiveParcelSection
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .zIndex(1)
+                    }
+                    
                 }
-                
-                // Кнопка подтверждения для owner: "Забрал" — после того, как sender отправил фото
-                if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isPickedUp {
-                    confirmPickedUpButton
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                }
-
-                // Кнопка подтверждения для owner: "Я в пути" — после того, как подтвердил забор
-                if isOwner && !isSender && currentOrderItem.isPickedUp && !currentOrderItem.isInDelivery {
-                    confirmOnTheWayButton
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                }
-                
-                // Секция для recipient: загрузка фото получения, затем меняем статус isDelivered
-                if isRecipient && !isSender && !isOwner && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered {
-                    receiveParcelSection
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                }
-                // Бар статусов и чат закреплены через safeAreaInset
-                Spacer(minLength: 100)
+                //Spacer(minLength: 100)
             }
+            
         }
         .edgesIgnoringSafeArea(.all)
         .safeAreaInset(edge: .bottom) {
@@ -162,7 +182,6 @@ struct OrderDetailView: View {
                         .offset(y: -75)
                         .zIndex(0)
                         .overlay(alignment: .topLeading) {
-                            // Кнопка чата - на самом верхнем слое для гарантированного получения нажатий
                             chatButton
                                 .padding(.leading, 16)
                                 .padding(.top, 16)
@@ -237,7 +256,6 @@ struct OrderDetailView: View {
     // MARK: - Кнопка чата (отдельно, на верхнем слое)
     private var chatButton: some View {
         Button {
-            print("🔵 Кнопка чата нажата!")
             openChat()
         } label: {
             Image(systemName: "ellipsis.message")
@@ -548,7 +566,6 @@ struct OrderDetailView: View {
     }
     
     private func openChat() {
-        print("🔵 openChat() вызвана")
         Task { @MainActor in
             guard let currentUser = viewModel.currentUser else {
                 print("❌ openChat: currentUser is nil")

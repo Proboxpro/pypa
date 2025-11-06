@@ -13,6 +13,7 @@ struct CreateDealView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     let item: ListingItem
+    var showCreateDealView: Binding<Bool>? = nil
     @State private var weight: String = ""
     @State private var recipientLogin: String = ""
     @State private var showingLoginSearch: Bool = false
@@ -45,8 +46,31 @@ struct CreateDealView: View {
                             
                         }
                         .overlay {
-                            BackTopLeftWhiteButtonView()
-                                .offset(y: -60)
+                            HStack {
+                                Button(action: {
+                                    if let binding = showCreateDealView {
+                                        withAnimation {
+                                            binding.wrappedValue = false
+                                        }
+                                    } else {
+                                        dismiss()
+                                    }
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "chevron.left")
+                                            .font(.title3)
+                                            .foregroundColor(.black)
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.top, 10)
+                            .offset(y: -60)
                         }
                     
                     //MARK: HStack с ценой и маршрутом

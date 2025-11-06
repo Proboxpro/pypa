@@ -27,8 +27,14 @@ struct DeparturesView: View {
                         PypLabelRightImage(text: "Уезжаете", image: Image("car_frong"))
                     }
                     
+//                    NavigationLink {
+//                        YouAreSendingView()
+//                    } label: {
+//                        PypLabelRightImage(text: "Отправляете", image: Image("box_with_clock"))
+//                    }
+                    
                     NavigationLink {
-                        YouAreSendingView()
+                        MainSearch(user: viewModel.currentUser!)
                     } label: {
                         PypLabelRightImage(text: "Отправляете", image: Image("box_with_clock"))
                     }
