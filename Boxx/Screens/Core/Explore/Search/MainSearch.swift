@@ -21,6 +21,8 @@ struct MainSearch: View {
     @State private var searchBarIsEmpty = true
     @EnvironmentObject var viewModel: AuthViewModel
     @State var searchParameters = SearchParameters()
+    @Environment(\.dismiss) private var dismiss
+    var showMainSearchView: Binding<Bool>? = nil
     
     @State var showingCreateDealView = false
     @State var currentItem : ListingItem?
@@ -50,11 +52,15 @@ struct MainSearch: View {
                         .navigationBarBackButtonHidden()
                         .onChange(of: showDestinationSearchView) { oldValue, newValue in
                             if newValue {
+                                // Когда DestinationSearchView открывается, обновляем данные
                                 viewModel.myOrder()
                             } else {
+                                // Когда DestinationSearchView закрывается, обновляем поиск
+                                // Убеждаемся, что searchBarIsEmpty = false, если город выбран
                                 if !searchParameters.cityName.isEmpty {
                                     searchBarIsEmpty = false
                                 }
+                                // Обновляем данные после закрытия
                                 viewModel.myOrder()
                             }
                         }
@@ -75,10 +81,10 @@ struct MainSearch: View {
                 
                 let ordersToShow = filteredOnParamOrder.filter({$0.startdate.toDate() ?? Date() > Date()}).filter({$0.ownerUid != viewModel.currentUser!.id})
             
-                let isOrderFound = !filteredOnParamOrder.isEmpty && searchParameters.cityName != ""
+                //let isOrderFound = !filteredOnParamOrder.isEmpty && searchParameters.cityName != ""
                 
-                if isOrderFound && !searchBarIsEmpty {
-                     SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty)
+                if searchParameters.cityName != "" {
+                    SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty, cityNameBinding: $searchParameters.cityName)
                 } else {
                     SearchAndFilter(SearchBarIsEmpty: $searchBarIsEmpty, showDestinationSearchView: $showDestinationSearchView)
                 }
@@ -87,6 +93,7 @@ struct MainSearch: View {
                 
                 if ordersToShow.isEmpty {
                     OrdersNotFoundView()
+                        .navigationBarBackButtonHidden()
                 } else {
                     VStack(spacing: 10) {
 

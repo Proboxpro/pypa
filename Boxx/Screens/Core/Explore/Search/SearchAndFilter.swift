@@ -51,6 +51,7 @@ struct SearchAndFilterWithCity: View {
     var cityName : String
 //    @Binding var eraseSearchBar : Bool
     @Binding var SearchBarIsEmpty: Bool
+    @Binding var cityNameBinding: String
     
     var body: some View {
         HStack{
@@ -89,6 +90,7 @@ struct SearchAndFilterWithCity: View {
     func eraseResult() {
         withAnimation {
             SearchBarIsEmpty = true
+            cityNameBinding = ""
         }
     }
 }
