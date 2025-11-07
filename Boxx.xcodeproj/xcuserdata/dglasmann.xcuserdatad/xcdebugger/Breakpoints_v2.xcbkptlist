@@ -16,8 +16,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1072"
             endingLineNumber = "1072"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            landmarkName = "addCustomer(ownerUid:ownerName:pricePerKillo:data:cityTo:startdate:imageUrl:transport:description:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

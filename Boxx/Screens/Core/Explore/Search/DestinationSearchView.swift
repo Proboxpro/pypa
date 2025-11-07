@@ -60,9 +60,17 @@ struct DestinationSearchView: View {
                 DeleteSearchInputView()
                 DestinationView()
                 DateSection()
-                SearchButton()
+                if #available(iOS 26.0, *) {
+                    SearchButton26()
+                } else {
+                    SearchButton()
+                }
             }
-            .background(Color(.white))
+            .background {
+                if #unavailable(iOS 26.0, ) {
+                    Color(.white).opacity(0.7)
+                }
+            }
             .cornerRadius(20)
             .padding()
             .shadow(radius: 20)
@@ -227,7 +235,8 @@ struct DestinationSearchView: View {
     }
     
     
-    func SearchButton()->some View {
+    @available(iOS 26.0, *)
+    func SearchButton26()->some View {
         Button {
             //MARK: - handle action
             Task {
@@ -261,16 +270,64 @@ struct DestinationSearchView: View {
                 Image (systemName: "arrow.right")
                 
             }
-            . foregroundColor (.white)
+            //.foregroundColor (.black)
             .frame(width:UIScreen.main.bounds.width-32, height: 48)
             
         }
+        .buttonStyle(.glass)
+        //.buttonBorderShape(.circle)
+        .glassEffect(.regular.interactive(), in: .capsule)
+        //.background (Color (.baseMint))
+        //.cornerRadius (10)
+        .padding(.top,25)
+        //        }
+    }
+    
+    
+    func SearchButton()->some View {
+        Button {
+            //MARK: - handle action
+            Task {
+//                print("All city's \(viewModel.city.compactMap({$0.name}))")
+//                print("CITY's: \(filtereduser.compactMap({$0.name}))" )
+                guard !search.isEmpty else {
+                    errorMessage = "Введите город получения"
+                    showError = true
+                    return
+                }
+                if filtereduser.compactMap({$0.name}).filter({$0 == search}).isEmpty {
+                    // Город не найден
+                } else {
+//                    print("Search: \(search)")
+//                    print("GO TO MAINSEARCH")
+//
+//                    print("DAte: \($parameters.startDate)")
+                    
+                    //MARK: - переход обратно на экран MainSearch
+                    
+                    withAnimation {
+                        parameters.cityName = search
+                        show.toggle()
+                    }
+                }
+            }
+        } label: {
+            HStack{
+                Text ("Найти отправления")
+                    .fontWeight (.semibold)
+                Image (systemName: "arrow.right")
+                
+            }
+            .foregroundColor (.white)
+            .frame(width:UIScreen.main.bounds.width-32, height: 48)
+            
+        }
+        //.buttonBorderShape(.circle)
         .background (Color (.baseMint))
         .cornerRadius (10)
         .padding(.top,25)
         //        }
     }
-    
     
 //    func convertDate() {
 //        if let date = viewModel.orders[0].startdate.toDate() {

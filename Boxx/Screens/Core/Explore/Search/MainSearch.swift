@@ -52,11 +52,15 @@ struct MainSearch: View {
                         .navigationBarBackButtonHidden()
                         .onChange(of: showDestinationSearchView) { oldValue, newValue in
                             if newValue {
+                                // Когда DestinationSearchView открывается, обновляем данные
                                 viewModel.myOrder()
                             } else {
+                                // Когда DestinationSearchView закрывается, обновляем поиск
+                                // Убеждаемся, что searchBarIsEmpty = false, если город выбран
                                 if !searchParameters.cityName.isEmpty {
                                     searchBarIsEmpty = false
                                 }
+                                // Обновляем данные после закрытия
                                 viewModel.myOrder()
                             }
                         }
@@ -77,13 +81,10 @@ struct MainSearch: View {
                 
                 let ordersToShow = filteredOnParamOrder.filter({$0.startdate.toDate() ?? Date() > Date()}).filter({$0.ownerUid != viewModel.currentUser!.id})
             
-                let isOrderFound = !filteredOnParamOrder.isEmpty && searchParameters.cityName != ""
+                //let isOrderFound = !filteredOnParamOrder.isEmpty && searchParameters.cityName != ""
                 
-                if isOrderFound && !searchBarIsEmpty {
-                     SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty)
-                } else if !searchBarIsEmpty {
-                    SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty)
-                    //SearchAndFilter(SearchBarIsEmpty: $searchBarIsEmpty, showDestinationSearchView: $showDestinationSearchView)
+                if searchParameters.cityName != "" {
+                    SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty, cityNameBinding: $searchParameters.cityName)
                 } else {
                     SearchAndFilter(SearchBarIsEmpty: $searchBarIsEmpty, showDestinationSearchView: $showDestinationSearchView)
                 }
