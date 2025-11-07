@@ -21,6 +21,8 @@ struct MainSearch: View {
     @State private var searchBarIsEmpty = true
     @EnvironmentObject var viewModel: AuthViewModel
     @State var searchParameters = SearchParameters()
+    @Environment(\.dismiss) private var dismiss
+    var showMainSearchView: Binding<Bool>? = nil
     
     @State var showingCreateDealView = false
     @State var currentItem : ListingItem?
@@ -79,6 +81,9 @@ struct MainSearch: View {
                 
                 if isOrderFound && !searchBarIsEmpty {
                      SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty)
+                } else if !searchBarIsEmpty {
+                    SearchAndFilterWithCity(cityName: searchParameters.cityName, SearchBarIsEmpty: $searchBarIsEmpty)
+                    //SearchAndFilter(SearchBarIsEmpty: $searchBarIsEmpty, showDestinationSearchView: $showDestinationSearchView)
                 } else {
                     SearchAndFilter(SearchBarIsEmpty: $searchBarIsEmpty, showDestinationSearchView: $showDestinationSearchView)
                 }
@@ -87,6 +92,7 @@ struct MainSearch: View {
                 
                 if ordersToShow.isEmpty {
                     OrdersNotFoundView()
+                        .navigationBarBackButtonHidden()
                 } else {
                     VStack(spacing: 10) {
 
