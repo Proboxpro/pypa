@@ -32,16 +32,8 @@ struct HomeView: View {
                     .font(.system(size: 28, weight: .bold))
                     .padding(.horizontal, 16)
                 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-//                        ForEach(trips, id: \.id) { item in
-                        ForEach(viewModel.myorder) { item in
-                            TripCardView(width: 240, item: item)
-                        }
-                    }
-                    .frame(height: 180)
+                ParallaxScrollView()
                     .padding(.horizontal, 16)
-                }
                 
                 Text("Последние сделки")
                     .font(.system(size: 28, weight: .bold))
@@ -49,9 +41,9 @@ struct HomeView: View {
                 
                 VStack() {
                     ScrollView {
-                        ForEach(deals, id: \.id) { deal in
-                            DealRowView(item: deal)
-                                .padding(.horizontal, 10)
+                        ForEach(viewModel.ownerOrderDescription.filter({$0.isDelivered == false}), id: \.hashValue) { order in
+                            DealRowView(item: order)
+                                .padding(.horizontal)
                         }
                     }
                 }
@@ -62,6 +54,9 @@ struct HomeView: View {
 //            .padding(.horizontal, 10)
             .onAppear {
                 viewModel.orderDescription.forEach({print($0)})
+                viewModel.fetchOrderDescription()
+                viewModel.fetchOrderDescriptionAsOwner()
+                viewModel.fetchOrderDescriptionAsRecipient()
             }
     }
       
@@ -86,3 +81,33 @@ struct HomeView_Previews: PreviewProvider {
 }
 
 
+struct ParallaxScrollView: View {
+    @EnvironmentObject var viewModel: AuthViewModel
+    
+    var body: some View {
+        GeometryReader { outerGeo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: -8) {
+                    ForEach(viewModel.myorder) { item in
+                        GeometryReader { geo in
+                            let midX = geo.frame(in: .global).midX
+                            let screenMidX = outerGeo.size.width / 2
+                            // расстояние от центра
+                            let distance = abs(screenMidX - midX)
+                            // масштаб уменьшается с ростом дистанции
+                            let scale = max(0.88, 1 - (distance / outerGeo.size.width) * 0.3)
+                            
+                            TripCardView(width: 260, item: item)
+                                .scaleEffect(scale)
+                                .animation(.easeOut(duration: 0.3), value: scale)
+                        }
+                        .frame(width: 260, height: 190)
+                    }
+                    Spacer()
+                }
+//                .padding(.horizontal, (outerGeo.size.width - 240) / 2)
+            }
+        }
+        .frame(height: 200)
+    }
+}

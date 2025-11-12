@@ -52,18 +52,19 @@ struct PersonalInfoView: View {
                 Spacer()
                 
             // Аватарка
-            if let imageUrl = viewModel.currentUser?.imageUrl, !imageUrl.isEmpty {
-                WebImage(url: URL(string: imageUrl))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 160, height: 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                    .shadow(color: .gray, radius: 2, x: 1, y: 2)
-            } else {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 160))
-                    .foregroundColor(.gray)
-            }
+//            if let imageUrl = viewModel.currentUser?.imageUrl, !imageUrl.isEmpty {
+//                WebImage(url: URL(string: imageUrl))
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: 160, height: 160)
+//                    .clipShape(RoundedRectangle(cornerRadius: 20))
+//                    .shadow(color: .gray, radius: 2, x: 1, y: 2)
+//            } else {
+//                Image(systemName: "person.circle.fill")
+//                    .font(.system(size: 160))
+//                    .foregroundColor(.gray)
+//            }
+            AvatarImageView(width: 160, height: 160)
                 
             Spacer()
             
@@ -166,4 +167,25 @@ struct PersonalInfoView: View {
 #Preview {
     PersonalInfoView()
         .environmentObject(AuthViewModel())
+}
+
+struct AvatarImageView: View {
+    @EnvironmentObject var viewModel: AuthViewModel
+    var width: Double
+    var height: Double
+    
+    var body: some View {
+        if let imageUrl = viewModel.currentUser?.imageUrl, !imageUrl.isEmpty {
+            WebImage(url: URL(string: imageUrl))
+                .resizable()
+                .scaledToFill()
+                .frame(width: 160, height: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .gray, radius: 2, x: 1, y: 2)
+        } else {
+            Image(systemName: "person.circle.fill")
+                .font(.system(size: 160))
+                .foregroundColor(.gray)
+        }
+    }
 }

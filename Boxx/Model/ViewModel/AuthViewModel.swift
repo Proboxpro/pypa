@@ -32,7 +32,7 @@ class AuthViewModel: ObservableObject {
     
     @Published var feedback: [Feedback] = []
     @Published var order: Order?
-    @Published var user: [User] = []
+//    @Published var user: [User] = []
     @Published var users: [User] = []
     @Published var allPosibleCityes: [City] = []
     
@@ -1067,6 +1067,16 @@ class AuthViewModel: ObservableObject {
         } catch {
             presentAlert(kind: .error, message: "❌ Firestore error: \(error.localizedDescription)")
         }
+    }
+    
+    func getUserFrom(id: String) -> User! {
+        self.users.filter({$0.id == id}).first
+    }
+    
+    func getUserImageURLFrom(id: String) -> URL!  {
+        guard let user = getUserFrom(id: id) else { return nil }
+        guard let stringURL = user.imageUrl else { return nil }
+        return URL(string: stringURL)
     }
 }
 
