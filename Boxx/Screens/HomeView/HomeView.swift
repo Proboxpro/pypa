@@ -10,21 +10,21 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     
-    private let trips: [ListingItem] = [
-        .init(id: UUID().uuidString, ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "https://picsum.photos/seed/1/600/400", startdate: "2025-10-02"),
-        .init(id: UUID().uuidString, ownerUid: "u2", ownerName: " ", imageUrl: "", pricePerKillo: 3500, cityFrom: "Мурманск", cityTo: "Торжок", imageUrls: "https://picsum.photos/seed/2/600/400", startdate: "2025-10-03")
-    ]
-    
-    private let deals: [DealItem] = [
-        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
-        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile")
-    ]
+//    private let trips: [ListingItem] = [
+//        .init(id: UUID().uuidString, ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "https://picsum.photos/seed/1/600/400", startdate: "2025-10-02"),
+//        .init(id: UUID().uuidString, ownerUid: "u2", ownerName: " ", imageUrl: "", pricePerKillo: 3500, cityFrom: "Мурманск", cityTo: "Торжок", imageUrls: "https://picsum.photos/seed/2/600/400", startdate: "2025-10-03")
+//    ]
+//    
+//    private let deals: [DealItem] = [
+//        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Image", title: "Platdo", subtitle: "Футболка", timeAgo: "1 час назад", price: "3200₽", avatar: "profile"),
+//        .init(id: UUID().uuidString, thumbnail: "Background", title: "Slam", subtitle: "Чемодан", timeAgo: "3 часа назад", price: "17500 ₽", avatar: "profile")
+//    ]
     
     var body: some View {
             VStack(alignment: .leading, spacing: 24) {
@@ -42,8 +42,24 @@ struct HomeView: View {
                 VStack() {
                     ScrollView {
                         ForEach(viewModel.ownerOrderDescription.filter({$0.isDelivered == false}), id: \.hashValue) { order in
-                            DealRowView(item: order)
-                                .padding(.horizontal)
+                            NavigationLink {
+                                OrderDetailView(orderItem: order, listingItem:ListingItem(
+                                    id: order.announcementId,
+                                    ownerUid: order.ownerId,
+                                    ownerName: order.ownerName,
+                                    imageUrl: order.image?.absoluteString ?? "",
+                                    pricePerKillo: 420.9/*Double(order.price)*/,
+                                    cityFrom: order.cityFrom,
+                                    cityTo: order.cityTo,
+                                    imageUrls: order.image?.absoluteString ?? "",
+                                    description: order.description ?? "",
+                                    startdate: "",
+                                    conversation: nil
+                                ), onDismiss: nil)
+                            } label: {
+                                DealRowView(item: order)
+                                    .padding(.horizontal)
+                            }
                         }
                     }
                 }
@@ -97,9 +113,13 @@ struct ParallaxScrollView: View {
                             // масштаб уменьшается с ростом дистанции
                             let scale = max(0.88, 1 - (distance / outerGeo.size.width) * 0.3)
                             
-                            TripCardView(width: 260, item: item)
-                                .scaleEffect(scale)
-                                .animation(.easeOut(duration: 0.3), value: scale)
+                            NavigationLink {
+                                CreateDealView(item: item)
+                            } label: {
+                                TripCardView(width: 260, item: item)
+                                    .scaleEffect(scale)
+                                    .animation(.easeOut(duration: 0.3), value: scale)
+                            }
                         }
                         .frame(width: 260, height: 190)
                     }

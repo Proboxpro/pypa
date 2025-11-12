@@ -59,7 +59,9 @@ struct MainTabBar: View {
                         case "Сделки":
                             OrdersList()
                         case "Главная":
-                            HomeView()
+                            NavigationView {
+                                HomeView()
+                            }
                         case "Партнёры":
 //                            TestView()
                             Search()
