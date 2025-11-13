@@ -430,7 +430,19 @@ class AuthViewModel: ObservableObject {
                                               cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                               description, url, price,
                                               isSent, isPickedUp, isInDelivery, isDelivered,
-                                              isCompleted) in
+                                              isCompleted, ownerDealStatus, recipientDealStatus, recipientDeadline) in
+            var finalRecipientStatus = recipientDealStatus
+            if recipientDealStatus == .pending, let deadline = recipientDeadline, Date() >= deadline {
+                finalRecipientStatus = .expired
+                Task {
+                    try? await self.updateRecipientDealStatus(
+                        status: .expired,
+                        orderId: uid,
+                        documentId: documentId
+                    )
+                }
+            }
+            
             let order = OrderDescriptionItem(id: uid,
                                              documentId: documentId,
                                              announcementId: announcementId,
@@ -451,7 +463,10 @@ class AuthViewModel: ObservableObject {
                                              isPickedUp: isPickedUp,
                                              isInDelivery: isInDelivery,
                                              isDelivered: isDelivered,
-                                             isCompleted: isCompleted)
+                                             isCompleted: isCompleted,
+                                             ownerDealStatus: ownerDealStatus,
+                                             recipientDealStatus: finalRecipientStatus,
+                                             recipientResponseDeadline: recipientDeadline)
             self.orderDescription.append(order)
         }
     }
@@ -475,8 +490,21 @@ class AuthViewModel: ObservableObject {
                                                                cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                                                description, url, price,
                                                                isSent, isPickedUp, isInDelivery, isDelivered,
-                                                               isCompleted) in
+                                                               isCompleted, ownerDealStatus, recipientDealStatus, recipientDeadline) in
                         if ownerId == uid {
+                            var finalRecipientStatus = recipientDealStatus
+                            if recipientDealStatus == .pending, let deadline = recipientDeadline, Date() >= deadline {
+                        
+                                finalRecipientStatus = .expired
+                                Task {
+                                    try? await self.updateRecipientDealStatus(
+                                        status: .expired,
+                                        orderId: id,
+                                        documentId: documentId
+                                    )
+                                }
+                            }
+                            
                             let order = OrderDescriptionItem(id: id,  // id из документа - это sender ID
                                                              documentId: documentId,
                                                              announcementId: announcementId,
@@ -497,7 +525,10 @@ class AuthViewModel: ObservableObject {
                                                              isPickedUp: isPickedUp,
                                                              isInDelivery: isInDelivery,
                                                              isDelivered: isDelivered,
-                                                             isCompleted: isCompleted)
+                                                             isCompleted: isCompleted,
+                                                             ownerDealStatus: ownerDealStatus,
+                                                             recipientDealStatus: finalRecipientStatus,
+                                                             recipientResponseDeadline: recipientDeadline)
                             self.ownerOrderDescription.append(order)
                         }
                     }
@@ -526,8 +557,22 @@ class AuthViewModel: ObservableObject {
                                                                cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
                                                                description, url, price,
                                                                isSent, isPickedUp, isInDelivery, isDelivered,
-                                                               isCompleted) in
+                                                               isCompleted, ownerDealStatus, recipientDealStatus, recipientDeadline) in
                         if recipientId == uid {
+                         
+                            var finalRecipientStatus = recipientDealStatus
+                            if recipientDealStatus == .pending, let deadline = recipientDeadline, Date() >= deadline {
+                               
+                                finalRecipientStatus = .expired
+                                Task {
+                                    try? await self.updateRecipientDealStatus(
+                                        status: .expired,
+                                        orderId: id,
+                                        documentId: documentId
+                                    )
+                                }
+                            }
+                            
                             let order = OrderDescriptionItem(id: id,  // id документа = senderId
                                                              documentId: documentId,
                                                              announcementId: announcementId,
@@ -548,7 +593,10 @@ class AuthViewModel: ObservableObject {
                                                              isPickedUp: isPickedUp,
                                                              isInDelivery: isInDelivery,
                                                              isDelivered: isDelivered,
-                                                             isCompleted: isCompleted)
+                                                             isCompleted: isCompleted,
+                                                             ownerDealStatus: ownerDealStatus,
+                                                             recipientDealStatus: finalRecipientStatus,
+                                                             recipientResponseDeadline: recipientDeadline)
                             DispatchQueue.main.async {
                                 self.recipientOrderDescription.append(order)
                             }
@@ -563,7 +611,7 @@ class AuthViewModel: ObservableObject {
                                                                                         String, CLLocation, String, CLLocation, String, Date,
                                                                                         String, URL?, Int,
                                                                                         Bool, Bool, Bool, Bool,
-                                                                                        Bool) -> Void)) {
+                                                                                        Bool, OwnerDealStatus, RecipientDealStatus, Date?) -> Void)) {
         ref.getDocuments { snapshot, error in
             guard error == nil else {
                 print(error!.localizedDescription)
@@ -586,24 +634,36 @@ class AuthViewModel: ObservableObject {
                     let cityToCoordinates = CLLocation(latitude: cityToLat, longitude: cityToLon)
                     let ownerName = data["ownerName"]as? String ?? ""
                     let timestampTime = data["creationTime"]as? Timestamp ?? Timestamp()
-                    let creationTime = timestampTime.dateValue()
-                    
-                    let description = data["description"]as? String ?? ""
-                    let image = data["image"]as? String ?? ""
-                    let url = URL(string: image)
-                    let price = data["price"]as? Int ?? 0
-                    
-                    let isSent = data["isSent"]as? Bool ?? false
-                    let isPickedUp = data["isPickedUp"]as? Bool ?? false
-                    let isInDelivery = data["isInDelivery"]as? Bool ?? false
-                    let isDelivered = data["isDelivered"]as? Bool ?? false
-                    
-                    let isCompleted = data["isCompleted"]as? Bool ?? false
-                    completion(document.documentID, announcementId, ownerId, recipientId, 
-                               cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
-                               description, url, price,
-                               isSent, isPickedUp, isInDelivery, isDelivered,
-                               isCompleted)
+            let creationTime = timestampTime.dateValue()
+            
+            let description = data["description"]as? String ?? ""
+            let image = data["image"]as? String ?? ""
+            let url = URL(string: image)
+            let price = data["price"]as? Int ?? 0
+            
+            let isSent = data["isSent"]as? Bool ?? false
+            let isPickedUp = data["isPickedUp"]as? Bool ?? false
+            let isInDelivery = data["isInDelivery"]as? Bool ?? false
+            let isDelivered = data["isDelivered"]as? Bool ?? false
+            
+            let isCompleted = data["isCompleted"]as? Bool ?? false
+            
+            let ownerDealStatusString = data["ownerDealStatus"] as? String ?? "pending"
+            let ownerDealStatus = OwnerDealStatus(rawValue: ownerDealStatusString) ?? .pending
+            
+            let recipientDealStatusString = data["recipientDealStatus"] as? String ?? "pending"
+            let recipientDealStatus = RecipientDealStatus(rawValue: recipientDealStatusString) ?? .pending
+            
+            var recipientDeadline: Date? = nil
+            if let deadlineTimestamp = data["recipientResponseDeadline"] as? Timestamp {
+                recipientDeadline = deadlineTimestamp.dateValue()
+            }
+            
+            completion(document.documentID, announcementId, ownerId, recipientId, 
+                       cityFrom, cityFromCoordinates, cityTo, cityToCoordinates, ownerName, creationTime,
+                       description, url, price,
+                       isSent, isPickedUp, isInDelivery, isDelivered,
+                       isCompleted, ownerDealStatus, recipientDealStatus, recipientDeadline)
                 }
             }
         }
@@ -829,6 +889,9 @@ class AuthViewModel: ObservableObject {
             let cityToLat = cityToCoordinates.first?.location?.coordinate.latitude ?? 0.0
             let cityToLon = cityToCoordinates.first?.location?.coordinate.longitude ?? 0.0
             
+            let creationTime = Date()
+            let recipientDeadline = creationTime.addingTimeInterval(3600)
+            
             let orderData: [String: Any] = [
                 "ownerId": ownerId,
                 "recipientId": recipientId,
@@ -840,7 +903,7 @@ class AuthViewModel: ObservableObject {
                 "cityToLat": cityToLat,
                 "cityToLon": cityToLon,
                 "ownerName": ownerName,
-                "creationTime": Date(),
+                "creationTime": creationTime,
                 "description": description,
                 "image": url?.absoluteString ?? "",
                 "price": price,
@@ -848,7 +911,10 @@ class AuthViewModel: ObservableObject {
                 "isPickedUp": false,
                 "isInDelivery": false,
                 "isDelivered": false,
-                "isCompleted": false
+                "isCompleted": false,
+                "ownerDealStatus": "pending",
+                "recipientDealStatus": "pending",
+                "recipientResponseDeadline": Timestamp(date: recipientDeadline)
             ]
             
             if document.exists {
@@ -873,7 +939,7 @@ class AuthViewModel: ObservableObject {
                 cityFrom: cityFrom,
                 cityTo: cityTo,
                 ownerName: ownerName,
-                creationTime: Date(),
+                creationTime: creationTime,
                 description: description,
                 image: url,
                 price: price,
@@ -881,7 +947,10 @@ class AuthViewModel: ObservableObject {
                 isPickedUp: false,
                 isInDelivery: false,
                 isDelivered: false,
-                isCompleted: false)
+                isCompleted: false,
+                ownerDealStatus: .pending,
+                recipientDealStatus: .pending,
+                recipientResponseDeadline: recipientDeadline)
             return order
         } catch {
             throw error
@@ -919,6 +988,53 @@ class AuthViewModel: ObservableObject {
         } catch {
             print("bags \(error.localizedDescription)")
             return
+        }
+    }
+    
+    // MARK: - Deal Status Functions
+    func updateOwnerDealStatus(status: OwnerDealStatus, orderId: String, documentId: String) async throws {
+        do {
+            let infoDoc = Firestore.firestore()
+                .collection("orderDescription")
+                .document(orderId)
+                .collection("information")
+                .document(documentId)
+
+            var updateData: [String: Any] = ["ownerDealStatus": status.rawValue]
+
+            if status != .pending {
+                updateData["ownerResponseDate"] = Timestamp(date: Date())
+            }
+            try await infoDoc.updateData(updateData)
+        } catch {
+            print("Ошибка обновления статуса owner: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
+    func updateRecipientDealStatus(status: RecipientDealStatus, orderId: String, documentId: String) async throws {
+        do {
+            let infoDoc = Firestore.firestore()
+                .collection("orderDescription")
+                .document(orderId)
+                .collection("information")
+                .document(documentId)
+
+            var updateData: [String: Any] = ["recipientDealStatus": status.rawValue]
+
+            if status != .pending {
+                updateData["recipientResponseDate"] = Timestamp(date: Date())
+            }
+
+            // Если статус expired, также обновляем ownerDealStatus на declined (так как сделка не состоялась)
+            if status == .expired || status == .declined {
+                updateData["ownerDealStatus"] = "declined"
+            }
+
+            try await infoDoc.updateData(updateData)
+        } catch {
+            print("Ошибка обновления статуса recipient: \(error.localizedDescription)")
+            throw error
         }
     }
     

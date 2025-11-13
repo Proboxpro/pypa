@@ -33,6 +33,7 @@ struct OrderWithListing: Identifiable, Hashable {
 @available(iOS 17.0, *)
 struct OrdersList: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    var screenwidth = SizeConstants.screenWidth
     
     @State private var orderWithListing: OrderWithListing? = nil
 
@@ -44,9 +45,21 @@ struct OrdersList: View {
                VStack {
                    switch viewModel.orderStatus {
                    case .isInDelivery:
-                       AnyView(ScrollViewWithOrders(isIncluded: {!$0.isDelivered}))
+                       // Актуальные: не доставленные И не отклоненные
+                       AnyView(ScrollViewWithOrders(isIncluded: { order in
+                           !order.isDelivered && 
+                           order.ownerDealStatus != .declined && 
+                           order.recipientDealStatus != .declined && 
+                           order.recipientDealStatus != .expired
+                       }))
                    default:
-                       AnyView(ScrollViewWithOrders(isIncluded: {$0.isDelivered}))
+                       // Завершённые: доставленные ИЛИ отклоненные
+                       AnyView(ScrollViewWithOrders(isIncluded: { order in
+                           order.isDelivered || 
+                           order.ownerDealStatus == .declined || 
+                           order.recipientDealStatus == .declined || 
+                           order.recipientDealStatus == .expired
+                       }))
                    }
                }
                .toolbar {
@@ -94,37 +107,37 @@ struct OrdersList: View {
     
     
     private func ScrollViewWithOrders(isIncluded: (OrderDescriptionItem) -> Bool)->some View {
-        ScrollView {
-            
-            if !viewModel.ownerOrderDescription.filter(isIncluded).isEmpty {
+        let showHeaders = viewModel.orderStatus != .isDelivered
+        return ScrollView {
+
+                if showHeaders && !viewModel.ownerOrderDescription.filter(isIncluded).isEmpty {
                     Text("Мои поездки")
                         .fontWeight(.medium)
                         .foregroundStyle(.black)
-                }
+                
+            }
             ForEach(viewModel.ownerOrderDescription.filter(isIncluded), id: \.hashValue) { order in
-                    OrderRow(isCompleted: order.isCompleted,
-                             orderImageURL: order.image,
-                             profileName: "В \(order.cityTo)",
-                             orderDescription: order.description ?? "Описание",
-                             date: order.creationTime)
+                OrderRow2(width: screenwidth - 20, order: order)
+//                    OrderRow(isCompleted: order.isCompleted,
+//                             orderImageURL: order.image,
+//                             profileName: "В \(order.cityTo)",
+//                             orderDescription: order.description ?? "Описание",
+//                             date: order.creationTime)
                     .onTapGesture {
                         Task {
                             await loadListingItemAndSetOrder(order)
                         }
                     }
                 }
-                
-            if !viewModel.orderDescription.filter(isIncluded).isEmpty {
+
+                if showHeaders && !viewModel.orderDescription.filter(isIncluded).isEmpty {
                     Text("Заказанные товары")
                         .fontWeight(.medium)
                         .foregroundStyle(.black)
-                }
+                
+            }
             ForEach(viewModel.orderDescription.filter(isIncluded), id: \.hashValue) { order in
-                    OrderRow(isCompleted: order.isCompleted,
-                             orderImageURL: order.image,
-                             profileName: "В \(order.cityTo)",
-                             orderDescription: order.description ?? "Описание",
-                             date: order.creationTime)
+                    OrderRow2(width: screenwidth - 20, order: order)
                     .onTapGesture {
                         Task {
                             await loadListingItemAndSetOrder(order)
@@ -149,18 +162,19 @@ struct OrdersList: View {
              ///       }
              ///   }
                 
-                
-                if !viewModel.recipientOrderDescription.filter(isIncluded).isEmpty {
+                if showHeaders && !viewModel.recipientOrderDescription.filter(isIncluded).isEmpty {
                     Text("Нужно получить")
                         .fontWeight(.medium)
                         .foregroundStyle(.black)
-                }
+                
+            }
                 ForEach(viewModel.recipientOrderDescription.filter(isIncluded), id: \.hashValue) { order in
-                    OrderRow(isCompleted: order.isCompleted,
-                             orderImageURL: order.image,
-                             profileName: "В \(order.cityTo)",
-                             orderDescription: order.description ?? "Описание",
-                             date: order.creationTime)
+                    OrderRow2(width: screenwidth - 20, order: order)
+//                    OrderRow(isCompleted: order.isCompleted,
+//                             orderImageURL: order.image,
+//                             profileName: "В \(order.cityTo)",
+//                             orderDescription: order.description ?? "Описание",
+//                             date: order.creationTime)
                     .onTapGesture {
                         Task {
                             await loadListingItemAndSetOrder(order)

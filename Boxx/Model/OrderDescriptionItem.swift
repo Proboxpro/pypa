@@ -9,6 +9,19 @@ import Foundation
 import Firebase
 import FirebaseFirestoreSwift
 
+enum OwnerDealStatus: String, Codable {
+    case pending = "pending"
+    case accepted = "accepted"
+    case declined = "declined"
+}
+
+enum RecipientDealStatus: String, Codable {
+    case pending = "pending"
+    case accepted = "accepted"
+    case declined = "declined"
+    case expired = "expired"
+}
+
 struct OrderDescriptionItem: Identifiable, Codable, Hashable {
     let id: String
     let documentId: String
@@ -42,6 +55,10 @@ struct OrderDescriptionItem: Identifiable, Codable, Hashable {
     var deliveredDate: Date?
     
     let isCompleted: Bool
+    
+    var ownerDealStatus: OwnerDealStatus = .pending
+    var recipientDealStatus: RecipientDealStatus = .pending
+    var recipientResponseDeadline: Date? // Время истечения для recipient (creationTime + 1 час)
 }
 
 enum OrderStatus: String, CaseIterable, Identifiable {
@@ -52,5 +69,5 @@ enum OrderStatus: String, CaseIterable, Identifiable {
     case isSent = "Отправлен"
     case isPickedUp = "Забран"
     case isInDelivery = "Актуальные"
-    case isDelivered = "Доставлен"
+    case isDelivered = "Завершённые"
 }
