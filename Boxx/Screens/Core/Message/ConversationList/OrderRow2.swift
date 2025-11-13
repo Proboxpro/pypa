@@ -30,9 +30,15 @@ struct OrderRow2: View {
                 .clipped()
                 .cornerRadius(12)
             
-            LinearGradient(colors: [.black.opacity(0.0), .black.opacity(0.6)], startPoint: .top, endPoint: .bottom)
-                .cornerRadius(12)
-                .frame(width: width, height: 170)
+            LinearGradient(
+                colors: isDealDeclinedOrExpired 
+                    ? [.red.opacity(0.0), .red.opacity(0.7)] 
+                    : [.black.opacity(0.0), .black.opacity(0.6)], 
+                startPoint: .top, 
+                endPoint: .bottom
+            )
+            .cornerRadius(12)
+            .frame(width: width, height: 170)
             
             VStack(alignment: .center, spacing: 0) {
                 VStack(alignment: .center) {
@@ -51,7 +57,20 @@ struct OrderRow2: View {
                     }
                     
                     Spacer(minLength: 10)
-                    
+                    if isDealDeclinedOrExpired {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(.red)
+                                .frame(height: 25)
+                            Text("Сделка не состоялась 😒")
+                                .foregroundColor(.white)
+                                .font(.system(size: 16))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                        }
+                        .fixedSize()
+                    }
+                   
                     if shouldShowOwnerActions {
                         ownerActionButtons
                     }
@@ -94,6 +113,9 @@ struct OrderRow2: View {
         }
         .onChange(of: order.ownerDealStatus) { newValue in
             ownerDealStatus = newValue
+        }
+        .onChange(of: order.recipientDealStatus) { newValue in
+            // Обновляем UI при изменении статуса recipient
         }
     }
     
@@ -139,6 +161,12 @@ struct OrderRow2: View {
 }
 
 private extension OrderRow2 {
+    private var isDealDeclinedOrExpired: Bool {
+        order.ownerDealStatus == .declined || 
+        order.recipientDealStatus == .declined || 
+        order.recipientDealStatus == .expired
+    }
+    
     private var shouldShowOwnerActions: Bool {
         guard let currentUserId = viewModel.currentUser?.id else { return false }
         return currentUserId == order.ownerId && ownerDealStatus == .pending

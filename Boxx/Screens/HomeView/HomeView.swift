@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @State private var orderWithListing: OrderWithListing? = nil
     
 //    private let trips: [ListingItem] = [
 //        .init(id: UUID().uuidString, ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "https://picsum.photos/seed/1/600/400", startdate: "2025-10-02"),
@@ -27,6 +28,7 @@ struct HomeView: View {
 //    ]
     
     var body: some View {
+        NavigationStack {
             VStack(alignment: .leading, spacing: 24) {
                 Text("Последние поездки")
                     .font(.system(size: 28, weight: .bold))
@@ -42,24 +44,13 @@ struct HomeView: View {
                 VStack() {
                     ScrollView {
                         ForEach(viewModel.ownerOrderDescription.filter({$0.isDelivered == false}), id: \.hashValue) { order in
-                            NavigationLink {
-                                OrderDetailView(orderItem: order, listingItem:ListingItem(
-                                    id: order.announcementId,
-                                    ownerUid: order.ownerId,
-                                    ownerName: order.ownerName,
-                                    imageUrl: order.image?.absoluteString ?? "",
-                                    pricePerKillo: 420.9/*Double(order.price)*/,
-                                    cityFrom: order.cityFrom,
-                                    cityTo: order.cityTo,
-                                    imageUrls: order.image?.absoluteString ?? "",
-                                    description: order.description ?? "",
-                                    startdate: "",
-                                    conversation: nil
-                                ), onDismiss: nil)
-                            } label: {
-                                DealRowView(item: order)
-                                    .padding(.horizontal)
-                            }
+                            DealRowView(item: order)
+                                .padding(.horizontal)
+                                .onTapGesture {
+                                    Task {
+                                        await loadListingItemAndSetOrder(order)
+                                    }
+                                }
                         }
                     }
                 }
@@ -68,12 +59,55 @@ struct HomeView: View {
             //MARK: убрал отступы для корректного отображения цвета
 //            .padding(.vertical)
 //            .padding(.horizontal, 10)
+            .navigationDestination(item: $orderWithListing) { item in
+                OrderDetailView(
+                    orderItem: item.orderItem,
+                    listingItem: item.listingItem
+                )
+                .environmentObject(viewModel)
+            }
             .onAppear {
                 viewModel.orderDescription.forEach({print($0)})
                 viewModel.fetchOrderDescription()
                 viewModel.fetchOrderDescriptionAsOwner()
                 viewModel.fetchOrderDescriptionAsRecipient()
+                Task {
+                    await viewModel.fetchOrder() // Загружаем orders для получения правильных imageUrls
+                }
             }
+        }
+    }
+    
+    private func loadListingItemAndSetOrder(_ order: OrderDescriptionItem) async {
+        var listing = await viewModel.fetchListingItem(by: order.announcementId)
+        
+        // Если не нашли в Firestore, создаем минимальный ListingItem из OrderDescriptionItem
+        if listing == nil {
+            let priceDouble = order.price.map { Double($0) } ?? 0
+            listing = ListingItem(
+                id: order.announcementId,
+                ownerUid: order.ownerId,
+                ownerName: order.ownerName,
+                imageUrl: order.image?.absoluteString ?? "",
+                pricePerKillo: priceDouble,
+                cityFrom: order.cityFrom,
+                cityTo: order.cityTo,
+                imageUrls: order.image?.absoluteString ?? "",
+                description: order.description ?? "",
+                startdate: "",
+                conversation: nil
+            )
+        }
+        
+        guard let listing = listing else { return }
+        
+        await MainActor.run {
+            orderWithListing = OrderWithListing(
+                id: order.documentId,
+                orderItem: order,
+                listingItem: listing
+            )
+        }
     }
       
 }
