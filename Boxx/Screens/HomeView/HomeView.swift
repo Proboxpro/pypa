@@ -33,7 +33,7 @@ struct HomeView: View {
                     .padding(.horizontal, 16)
                 
                 ParallaxScrollView()
-                    .padding(.horizontal, 16)
+//                    .padding(.leading, 16)
                 
                 Text("Последние сделки")
                     .font(.system(size: 28, weight: .bold))
