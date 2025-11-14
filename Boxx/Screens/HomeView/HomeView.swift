@@ -55,7 +55,7 @@ struct HomeView: View {
                             //                                .offset(x: 50, y: 50)
                         } else {
                             ForEach(Array(mergedSet), id: \.hashValue) { order in
-                                DealRowView(item: order)
+                                DealRowView(order: order)
                                     .padding(.horizontal)
                                     .onTapGesture {
                                         Task {
