@@ -43,14 +43,26 @@ struct HomeView: View {
                 
                 VStack() {
                     ScrollView {
-                        ForEach(viewModel.ownerOrderDescription.filter({$0.isDelivered == false}), id: \.hashValue) { order in
-                            DealRowView(item: order)
-                                .padding(.horizontal)
-                                .onTapGesture {
-                                    Task {
-                                        await loadListingItemAndSetOrder(order)
+                        
+                        let mergedSet = Set(viewModel.ownerOrderDescription + viewModel.recipientOrderDescription
+                                            + viewModel.orderDescription)
+                        
+                        if mergedSet.isEmpty  {
+                            Text("У вас пока еще нет сделок ...")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 100, alignment: .center)
+                                .foregroundStyle(Color.black.opacity(0.7))
+                            //                                .offset(x: 50, y: 50)
+                        } else {
+                            ForEach(Array(mergedSet), id: \.hashValue) { order in
+                                DealRowView(item: order)
+                                    .padding(.horizontal)
+                                    .onTapGesture {
+                                        Task {
+                                            await loadListingItemAndSetOrder(order)
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
                 }
@@ -138,7 +150,7 @@ struct ParallaxScrollView: View {
         GeometryReader { outerGeo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: -8) {
-                    ForEach(viewModel.myorder) { item in
+                    ForEach(viewModel.orders) { item in
                         GeometryReader { geo in
                             let midX = geo.frame(in: .global).midX
                             let screenMidX = outerGeo.size.width / 2

@@ -59,6 +59,13 @@ import Nuke
 import NukeUI
 
 struct DealRowView: View {
+    
+    private var isDealDeclinedOrExpired: Bool {
+        item.ownerDealStatus == .declined ||
+        item.recipientDealStatus == .declined ||
+        item.recipientDealStatus == .expired
+    }
+    
     @EnvironmentObject var viewModel: AuthViewModel
     
     var item: OrderDescriptionItem
