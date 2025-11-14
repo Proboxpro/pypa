@@ -29,6 +29,7 @@
 		B30EA09E2EB0F6AA00CC2EDD /* CenterButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA09D2EB0F6AA00CC2EDD /* CenterButtonView.swift */; };
 		B30EA0AE2EB27E4900CC2EDD /* OrderDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA0AD2EB27E4900CC2EDD /* OrderDetailView.swift */; };
 		B30EA0B22EB78B6300CC2EDD /* UserSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30EA0B12EB78B6300CC2EDD /* UserSearchView.swift */; };
+		B3DC939C2EC6484D009B5290 /* OrderRow2.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3DC939B2EC6484D009B5290 /* OrderRow2.swift */; };
 		CF478BD52E8E897D004DA93F /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD42E8E897D004DA93F /* ImagePicker.swift */; };
 		CF478BD62E8E897D004DA93F /* AuthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD32E8E897D004DA93F /* AuthTextField.swift */; };
 		CF478BD82E8E8C87004DA93F /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF478BD72E8E8C87004DA93F /* StartView.swift */; };
@@ -118,6 +119,7 @@
 		FA62333E2BC86309008CBD84 /* Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA62333D2BC86309008CBD84 /* Bindings.swift */; };
 		FA6233492BC99D3A008CBD84 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6233482BC99D3A008CBD84 /* String+Extension.swift */; };
 		FA62334B2BC9B393008CBD84 /* DestinationSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA62334A2BC9B393008CBD84 /* DestinationSearchViewModel.swift */; };
+		FA6E8ED32EC4F2AE005ABE71 /* ParallaxCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6E8ED22EC4F2AE005ABE71 /* ParallaxCarousel.swift */; };
 		FA752FEE2BE28E3F00AD8CFC /* CachedAsyncImage in Frameworks */ = {isa = PBXBuildFile; productRef = FA752FED2BE28E3F00AD8CFC /* CachedAsyncImage */; };
 		FAB3394E2BE0E56600144C14 /* UIVC+EXT.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB3394C2BE0E56600144C14 /* UIVC+EXT.swift */; };
 		FAB3394F2BE0E56600144C14 /* NSError + Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB3394D2BE0E56600144C14 /* NSError + Ext.swift */; };
@@ -173,6 +175,7 @@
 		B30EA09D2EB0F6AA00CC2EDD /* CenterButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterButtonView.swift; sourceTree = "<group>"; };
 		B30EA0AD2EB27E4900CC2EDD /* OrderDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailView.swift; sourceTree = "<group>"; };
 		B30EA0B12EB78B6300CC2EDD /* UserSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchView.swift; sourceTree = "<group>"; };
+		B3DC939B2EC6484D009B5290 /* OrderRow2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderRow2.swift; sourceTree = "<group>"; };
 		CF478BD32E8E897D004DA93F /* AuthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTextField.swift; sourceTree = "<group>"; };
 		CF478BD42E8E897D004DA93F /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		CF478BD72E8E8C87004DA93F /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
@@ -248,6 +251,7 @@
 		FA62333D2BC86309008CBD84 /* Bindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
 		FA6233482BC99D3A008CBD84 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
 		FA62334A2BC9B393008CBD84 /* DestinationSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationSearchViewModel.swift; sourceTree = "<group>"; };
+		FA6E8ED22EC4F2AE005ABE71 /* ParallaxCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxCarousel.swift; sourceTree = "<group>"; };
 		FA752FEB2BE2607400AD8CFC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FAB3394C2BE0E56600144C14 /* UIVC+EXT.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIVC+EXT.swift"; sourceTree = "<group>"; };
 		FAB3394D2BE0E56600144C14 /* NSError + Ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSError + Ext.swift"; sourceTree = "<group>"; };
@@ -322,6 +326,7 @@
 			children = (
 				F7F7EE512B07204600817353 /* OrdersList.swift */,
 				F7F7EE532B07206400817353 /* OrderRow.swift */,
+				B3DC939B2EC6484D009B5290 /* OrderRow2.swift */,
 			);
 			path = ConversationList;
 			sourceTree = "<group>";
@@ -377,6 +382,7 @@
 		CF478BE22E8E9B0D004DA93F /* HomeView */ = {
 			isa = PBXGroup;
 			children = (
+				FA6E8ED12EC4F292005ABE71 /* Views */,
 				CF478BDF2E8E9B0D004DA93F /* DealRowView.swift */,
 				CF478BE02E8E9B0D004DA93F /* HomeView.swift */,
 				CF478BE12E8E9B0D004DA93F /* TripCardView.swift */,
@@ -686,6 +692,14 @@
 			path = Support;
 			sourceTree = "<group>";
 		};
+		FA6E8ED12EC4F292005ABE71 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FA6E8ED22EC4F2AE005ABE71 /* ParallaxCarousel.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		FAB339562BE0E5B900144C14 /* SumSubModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -971,9 +985,11 @@
 				B30EA0B22EB78B6300CC2EDD /* UserSearchView.swift in Sources */,
 				882C20662B9DF101002CE6FE /* Date+TimeAgoFormat.swift in Sources */,
 				F7E9B8972B3F681C001169BE /* CardView.swift in Sources */,
+				B3DC939C2EC6484D009B5290 /* OrderRow2.swift in Sources */,
 				8850C6E42B8EEDDF00DC7A70 /* Message.swift in Sources */,
 				F7E9B83F2B319DBC001169BE /* FeedbackView.swift in Sources */,
 				F7BA70C02BAAB02A00DC1856 /* City.swift in Sources */,
+				FA6E8ED32EC4F2AE005ABE71 /* ParallaxCarousel.swift in Sources */,
 				F7E9B8772B386D8E001169BE /* NewOrder.swift in Sources */,
 				CF478BDB2E8E8F7B004DA93F /* AuthContainerView.swift in Sources */,
 				CF478BDC2E8E8F7B004DA93F /* AuthButton.swift in Sources */,

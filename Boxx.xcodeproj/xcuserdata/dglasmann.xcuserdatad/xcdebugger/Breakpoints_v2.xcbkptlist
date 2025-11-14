@@ -14,9 +14,9 @@
             filePath = "Boxx/Model/ViewModel/AuthViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1072"
-            endingLineNumber = "1072"
-            landmarkName = "addCustomer(ownerUid:ownerName:pricePerKillo:data:cityTo:startdate:imageUrl:transport:description:)"
+            startingLineNumber = "1069"
+            endingLineNumber = "1069"
+            landmarkName = "fetchP2Porder()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

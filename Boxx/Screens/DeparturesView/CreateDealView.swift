@@ -269,7 +269,6 @@ struct CreateDealView: View {
             return
         }
         
-        // Use already selected recipient from UserSearchView, or fetch by login if needed
         if recipient == nil && !recipientLogin.isEmpty {
             await withCheckedContinuation { continuation in
                 viewModel.fetchUser(by: recipientLogin) { user in

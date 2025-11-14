@@ -15,7 +15,9 @@ struct TripCardView: View {
     var item: ListingItem
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            backgroundImage
+            let urlString = item.imageUrls
+            
+            LazyImageView(urlString: urlString, width: width, height: 170)
                 .frame(width: width, height: 170)
                 .clipped()
                 .cornerRadius(12)
@@ -46,14 +48,50 @@ struct TripCardView: View {
     }
     
     
-    private var backgroundImage: some View {
-        let urlString = item.imageUrls
+//    private var backgroundImage: some View {
+//        let urlString = item.imageUrls
+//        
+//        return LazyImage(request: ImageRequest(
+//            url: URL(string: urlString),
+//            processors: [
+//                ImageProcessors.Resize(
+//                    size: CGSize(width: 240, height: 170),
+//                    contentMode: .aspectFill
+//                )
+//            ]
+//        )) { state in
+//            if let image = state.image {
+//                image.resizable().scaledToFill()
+//            } else if state.error != nil {
+//                Color.gray.opacity(0.3)
+//            } else {
+//                Color.gray.opacity(0.2)
+//            }
+//        }
+//    }
+    
+    struct TripCardView_Previews: PreviewProvider {
+        static var previews: some View {
+            TripCardView(width: 240, item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
+        }
+    }
+    
+    
+}
+
+struct LazyImageView: View {
+    var urlString: String
+    var width: Double
+    var height: Double
+
+    var body: some View {
+//        let urlString = item.imageUrls
         
         return LazyImage(request: ImageRequest(
             url: URL(string: urlString),
             processors: [
                 ImageProcessors.Resize(
-                    size: CGSize(width: 240, height: 170),
+                    size: CGSize(width: width, height: height),
                     contentMode: .aspectFill
                 )
             ]
@@ -67,12 +105,4 @@ struct TripCardView: View {
             }
         }
     }
-    
-    struct TripCardView_Previews: PreviewProvider {
-        static var previews: some View {
-            TripCardView(width: 240, item: ListingItem(id: "1", ownerUid: "u1", ownerName: "Alexander", imageUrl: "", pricePerKillo: 6000, cityFrom: "Мурманск", cityTo: "Санкт-Петербург", imageUrls: "", startdate: ""))
-        }
-    }
-    
-    
 }

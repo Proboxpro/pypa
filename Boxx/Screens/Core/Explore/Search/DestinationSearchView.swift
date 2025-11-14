@@ -67,9 +67,9 @@ struct DestinationSearchView: View {
                 }
             }
             .background {
-                if #unavailable(iOS 26.0, ) {
+//                if #unavailable(iOS 26.0, ) {
                     Color(.white).opacity(0.7)
-                }
+//                }
             }
             .cornerRadius(20)
             .padding()
@@ -274,9 +274,9 @@ struct DestinationSearchView: View {
             .frame(width:UIScreen.main.bounds.width-32, height: 48)
             
         }
-        .buttonStyle(.glass)
+//        .buttonStyle(.glass)
         //.buttonBorderShape(.circle)
-        .glassEffect(.regular.interactive(), in: .capsule)
+//        .glassEffect(.regular.interactive(), in: .capsule)
         //.background (Color (.baseMint))
         //.cornerRadius (10)
         .padding(.top,25)

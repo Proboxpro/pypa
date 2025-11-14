@@ -11,6 +11,55 @@ import NukeUI
 import PhotosUI
 import FirebaseFirestore
 import ExyteChat
+import Combine
+
+class RecipientTimerManager: ObservableObject {
+    @Published var timeRemaining: TimeInterval = 0
+    private var timer: Timer?
+    private var deadline: Date?
+    
+    func startTimer(deadline: Date?, onExpired: @escaping () -> Void) {
+        stopTimer()
+        guard let deadline = deadline else { return }
+        self.deadline = deadline
+        
+        updateTimeRemaining()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.updateTimeRemaining()
+                
+                if Date() >= deadline {
+                    timer.invalidate()
+                    self.timer = nil
+                    onExpired()
+                }
+            }
+        }
+        
+        if let timer = timer {
+            RunLoop.main.add(timer, forMode: .common)
+        }
+    }
+    
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func updateTimeRemaining() {
+        guard let deadline = deadline else {
+            timeRemaining = 0
+            return
+        }
+        timeRemaining = max(0, deadline.timeIntervalSince(Date()))
+    }
+}
 
 struct OrderDetailView: View {
     @EnvironmentObject var viewModel: AuthViewModel
@@ -31,7 +80,12 @@ struct OrderDetailView: View {
     @State private var isLoadingImage: Bool = false
     @State private var orderStatusListener: ListenerRegistration?
     @State private var currentOrderItem: OrderDescriptionItem
+    @State private var currentOwnerDealStatus: OwnerDealStatus
+    @State private var currentRecipientDealStatus: RecipientDealStatus
+    @State private var recipientDeadline: Date?
+    @State private var ownerTimerUpdateTrigger: Date = Date()
     
+    @StateObject private var timerManager = RecipientTimerManager()
     @StateObject private var orderViewModel: OrderViewModel
     
     private var currentUserId: String {
@@ -50,6 +104,62 @@ struct OrderDetailView: View {
         currentUserId == orderItem.recipientId
     }
     
+    // MARK: - Computed Properties для статусов сделки
+    var isDealAcceptedByBoth: Bool {
+        currentOwnerDealStatus == .accepted && currentRecipientDealStatus == .accepted
+    }
+    
+    var isPendingOwnerDecision: Bool {
+        isOwner && !isSender && currentOwnerDealStatus == .pending
+    }
+    
+    var isPendingRecipientDecision: Bool {
+        isRecipient && !isOwner && !isSender && currentRecipientDealStatus == .pending
+    }
+    
+    var isSenderWaitingForOwner: Bool {
+        guard !isDealDeclined else { return false }
+        
+        if isSender && !isOwner {
+            return currentOwnerDealStatus == .pending || currentRecipientDealStatus == .pending
+        }
+        
+        if isOwner && !isSender {
+            return currentOwnerDealStatus == .accepted && currentRecipientDealStatus == .pending
+        }
+        
+        return false
+    }
+    
+    var isDealDeclined: Bool {
+        currentOwnerDealStatus == .declined || currentRecipientDealStatus == .declined || currentRecipientDealStatus == .expired
+    }
+    
+    var recipientTimeRemainingString: String {
+        if timerManager.timeRemaining <= 0 {
+            return "00:00"
+        }
+        let minutes = Int(timerManager.timeRemaining) / 60
+        let seconds = Int(timerManager.timeRemaining) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    var recipientTimeRemainingForOwner: TimeInterval {
+        _ = ownerTimerUpdateTrigger
+        guard let deadline = recipientDeadline else { return 0 }
+        return max(0, deadline.timeIntervalSince(Date()))
+    }
+    
+    var recipientTimeRemainingStringForOwner: String {
+        let timeRemaining = recipientTimeRemainingForOwner
+        if timeRemaining <= 0 {
+            return "00:00"
+        }
+        let minutes = Int(timeRemaining) / 60
+        let seconds = Int(timeRemaining) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+    
     private var mapView: MapView {
         let fromLat = orderItem.cityFromLat ?? 0
         let fromLon = orderItem.cityFromLon ?? 0
@@ -65,6 +175,9 @@ struct OrderDetailView: View {
         self.listingItem = listingItem
         self.onDismiss = onDismiss
         _currentOrderItem = State(initialValue: orderItem)
+        _currentOwnerDealStatus = State(initialValue: orderItem.ownerDealStatus)
+        _currentRecipientDealStatus = State(initialValue: orderItem.recipientDealStatus)
+        _recipientDeadline = State(initialValue: orderItem.recipientResponseDeadline)
         _orderViewModel = StateObject(wrappedValue: OrderViewModel(authViewModel: AuthViewModel.shared))
     }
     
@@ -132,8 +245,8 @@ struct OrderDetailView: View {
                         .zIndex(0)
                     
                     
-                    // Секция "Отдайте посылку" - только для sender, когда посылка еще не отправлена
-                    if isSender && !isOwner && !currentOrderItem.isSent {
+                    // Секция "Отдайте посылку" - только для sender, когда посылка еще не отправлена и сделка принята обеими сторонами
+                    if isSender && !isOwner && !currentOrderItem.isSent && isDealAcceptedByBoth {
                         // Отправитель должен загрузить фото посылки
                         sendParcelSection
                             .padding(.horizontal, 20)
@@ -141,8 +254,8 @@ struct OrderDetailView: View {
                             .zIndex(1)
                     }
                     
-                    // Кнопка подтверждения для owner: "Забрал" — после того, как sender отправил фото
-                    if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isPickedUp {
+                    // Кнопка подтверждения для owner: "Забрал" — после того, как sender отправил фото и сделка принята
+                    if isOwner && !isSender && currentOrderItem.isSent && !currentOrderItem.isPickedUp && isDealAcceptedByBoth {
                         confirmPickedUpButton
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
@@ -150,7 +263,7 @@ struct OrderDetailView: View {
                     }
                     
                     // Кнопка подтверждения для owner: "Я в пути" — после того, как подтвердил забор
-                    if isOwner && !isSender && currentOrderItem.isPickedUp && !currentOrderItem.isInDelivery {
+                    if isOwner && !isSender && currentOrderItem.isPickedUp && !currentOrderItem.isInDelivery && isDealAcceptedByBoth {
                         confirmOnTheWayButton
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
@@ -158,13 +271,19 @@ struct OrderDetailView: View {
                     }
                     
                     // Секция для recipient: загрузка фото получения, затем меняем статус isDelivered
-                    if isRecipient && !isSender && !isOwner && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered {
+                    if isRecipient && !isSender && !isOwner && currentOrderItem.isInDelivery && !currentOrderItem.isDelivered && isDealAcceptedByBoth {
                         receiveParcelSection
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
                             .zIndex(1)
                     }
                     
+                }
+                
+                if isPendingOwnerDecision {
+                    ownerDecisionButtons
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                 }
                 //Spacer(minLength: 100)
             }
@@ -176,7 +295,6 @@ struct OrderDetailView: View {
                 statusBarSection
                     .zIndex(1)
                 
-                // Чат секция - визуально выше и на более высоком слое, чтобы выглядывать поверх статус-бара
                 if let owner = owner, let recipient = recipient, let sender = sender {
                     chatSectionWithoutButton(owner: owner, recipient: recipient, sender: sender)
                         .offset(y: -75)
@@ -194,16 +312,78 @@ struct OrderDetailView: View {
             .background(Color(.systemBackground))
             //.shadow(radius: 8, y: -2)
         }
+        .overlay {
+            if isPendingRecipientDecision {
+                ZStack {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+
+                    VStack {
+                        Spacer()
+                        recipientDecisionButtons
+                            .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                }
+                .zIndex(9999)
+            }
+
+            if isDealDeclined {
+                ZStack {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+
+                    VStack {
+                        Spacer()
+                        declinedDealMessage
+                            .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                }
+                .zIndex(9999)
+            } else if isSenderWaitingForOwner {
+                ZStack {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                    VStack {
+                        Spacer()
+                        senderWaitingMessage
+                            .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                }
+                .zIndex(9999)
+            }
+        }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             Task {
                 await loadUsers()
                 setupStatusListener()
+                
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                
+                if isPendingRecipientDecision, let deadline = recipientDeadline {
+                    if Date() >= deadline {
+                        await expireRecipientDeal()
+                    } else {
+                        // Запускаем таймер для recipient
+                        startRecipientTimer()
+                    }
+                }
             }
         }
         .onDisappear {
             orderStatusListener?.remove()
+            stopRecipientTimer()
+        }
+        .onChange(of: currentRecipientDealStatus) { oldValue, newValue in
+            if newValue != .pending {
+                stopRecipientTimer()
+            } else if newValue == .pending && isPendingRecipientDecision {
+                startRecipientTimer()
+            }
         }
         .photosPicker(isPresented: $showImagePicker, selection: $photosPickerItem, matching: .images)
         .onChange(of: photosPickerItem) { oldValue, newValue in
@@ -217,7 +397,6 @@ struct OrderDetailView: View {
     @ViewBuilder
     private func chatSectionWithoutButton(owner: User, recipient: User, sender: User) -> some View {
         HStack(alignment: .top, spacing: 16) {
-            // Пустое место для кнопки (32px + 16px spacing)
             Color.clear
                 .frame(width: 32, height: 32)
             
@@ -235,7 +414,6 @@ struct OrderDetailView: View {
             
             Spacer()
             
-            // Аватар owner
             AsyncImage(url: URL(string: owner.imageUrl ?? "")) { image in
                 image
                     .resizable()
@@ -421,6 +599,225 @@ struct OrderDetailView: View {
         .shadow(radius: 8, y: 5)
     }
     
+    // MARK: - UI элементы для deal status
+    
+    private var ownerDecisionButtons: some View {
+        VStack(spacing: 16) {
+            Text("Принять или отклонить сделку?")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+            
+            HStack(spacing: 20) {
+                Button {
+                    Task {
+                        await acceptDealByOwner()
+                    }
+                } label: {
+                    Text("Принять")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.baseMint)
+                        .cornerRadius(12)
+                }
+                
+                Button {
+                    Task {
+                        await declineDealByOwner()
+                    }
+                } label: {
+                    Text("Отклонить")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.red)
+                        .cornerRadius(12)
+                }
+            }
+        }
+        .padding(24)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 8, y: 5)
+    }
+    
+    private var recipientDecisionButtons: some View {
+        VStack(spacing: 16) {
+            Text("Принять или отклонить сделку?")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+            
+            VStack(spacing: 8) {
+                Text("Осталось времени:")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.secondary)
+                
+                Text(recipientTimeRemainingString)
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(timerManager.timeRemaining > 300 ? .baseMint : .red) // Красный если меньше 5 минут
+                    .monospacedDigit()
+            }
+            .padding(.vertical, 8)
+            
+            HStack(spacing: 20) {
+                Button {
+                    Task {
+                        await acceptDealByRecipient()
+                    }
+                } label: {
+                    Text("Принять")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.baseMint)
+                        .cornerRadius(12)
+                }
+                
+                Button {
+                    Task {
+                        await declineDealByRecipient()
+                    }
+                } label: {
+                    Text("Отклонить")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(.red)
+                        .cornerRadius(12)
+                }
+            }
+        }
+        .padding(24)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 8, y: 5)
+    }
+    
+    private var senderWaitingMessage: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "clock.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.orange)
+            
+            Text("Ожидание подтверждения")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.primary)
+            
+            VStack(spacing: 12) {
+                if let owner = owner {
+                    HStack {
+                        Text("Путешественник:")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(owner.fullname)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary)
+                    }
+                }
+                
+                if let recipient = recipient {
+                    HStack {
+                        Text("Получатель:")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(recipient.fullname)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary)
+                    }
+                }
+                
+                if let deadline = recipientDeadline {
+                    Divider()
+                        .padding(.vertical, 4)
+                    
+                    VStack(spacing: 8) {
+                        Text("Осталось времени для получателя:")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        
+                        Text(recipientTimeRemainingStringForOwner)
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(recipientTimeRemainingForOwner > 300 ? .baseMint : .red) // Красный если меньше 5 минут
+                            .monospacedDigit()
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            .padding(.vertical, 8)
+            
+            // Статус ожидания
+            if currentOwnerDealStatus == .pending && currentRecipientDealStatus == .pending {
+                Text("Ожидаем подтверждения от путешественника и получателя")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else if currentOwnerDealStatus == .pending {
+                Text("Ожидаем подтверждения от путешественника")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else if currentRecipientDealStatus == .pending {
+                Text("Ожидаем подтверждения от получателя")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(32)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 8, y: 5)
+        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+            // Обновляем UI каждую секунду для обновления таймера
+            ownerTimerUpdateTrigger = Date()
+        }
+    }
+    
+    private var declinedDealMessage: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.red)
+            
+            Text("Сделка отклонена")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.primary)
+            
+            if currentRecipientDealStatus == .declined {
+                Text("Получатель отклонил сделку.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else if currentRecipientDealStatus == .expired {
+                Text("Время на подтверждение истекло.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else if currentOwnerDealStatus == .declined {
+                Text("Путешественник отклонил сделку.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            Text("Она больше не активна.")
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(32)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 8, y: 5)
+    }
+    
     // MARK: - статус бар у всех
     private var statusBarSection: some View {
         VStack(spacing: 24) {
@@ -521,7 +918,6 @@ struct OrderDetailView: View {
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(currentOrderItem.isInDelivery ? .baseMint : .black)
                         
-                        // Фиксированное пространство для выравнивания
                         Text(" ")
                             .font(.system(size: 10, weight: .regular))
                             .opacity(0)
@@ -639,7 +1035,6 @@ struct OrderDetailView: View {
             
             for user in usersForChat {
                 if !MessageService.shared.allUsers.contains(where: { $0.id == user.id }) {
-                    // Если пользователь не в списке, ждем обновления
                     await MessageService.shared.getUsers()
                     break
                 }
@@ -688,13 +1083,10 @@ struct OrderDetailView: View {
                let image = UIImage(data: data) {
                 selectedImage = image
                 
-                // Загружаем изображение на сервер
                 if let imageURL = try await viewModel.saveOrderImage(data: data) {
-                    // Отправляем в чат и обновляем соответствующий статус
                     await sendImageToChat(imageURL: imageURL)
 
                     if isSender && !isOwner {
-                        // Фото от отправителя — фиксируем isSent = true
                         try await viewModel.updateOrderStatus(
                             type: .isSent,
                             value: true,
@@ -702,7 +1094,6 @@ struct OrderDetailView: View {
                             documentId: currentOrderItem.documentId
                         )
                     } else if isRecipient && !isOwner {
-                        // Фото от получателя — фиксируем isDelivered = true
                         try await viewModel.updateOrderStatus(
                             type: .isDelivered,
                             value: true,
@@ -745,7 +1136,6 @@ struct OrderDetailView: View {
         
         let chatVM = ChatViewModel(auth: viewModel, conversation: conversation)
         
-        // Создаем DraftMessage с текстом
         let draft = DraftMessage(
             text: (currentUser.id == orderItem.recipientId) ? "Посылка получена" : "Посылка передана",
             medias: [],
@@ -754,7 +1144,6 @@ struct OrderDetailView: View {
             createdAt: Date.now
         )
         
-        // Отправляем сообщение с изображением
         chatVM.sendMessage(draft, usingDefaultImageURL: imageURL)
         
         await MainActor.run {
@@ -811,6 +1200,119 @@ struct OrderDetailView: View {
         }
     }
     
+    // MARK: - Функции для owner
+    private func acceptDealByOwner() async {
+        do {
+            try await viewModel.updateOwnerDealStatus(
+                status: .accepted,
+                orderId: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            
+            await MainActor.run {
+                currentOwnerDealStatus = .accepted
+                currentOrderItem.ownerDealStatus = .accepted
+            }
+        } catch {
+            print("Ошибка принятия сделки owner: \(error.localizedDescription)")
+        }
+    }
+    
+    private func declineDealByOwner() async {
+        do {
+            try await viewModel.updateOwnerDealStatus(
+                status: .declined,
+                orderId: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            
+            await MainActor.run {
+                currentOwnerDealStatus = .declined
+                currentOrderItem.ownerDealStatus = .declined
+            }
+        } catch {
+            print("Ошибка отклонения сделки owner: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Функции для recipient
+    private func acceptDealByRecipient() async {
+        timerManager.stopTimer()
+        do {
+            try await viewModel.updateRecipientDealStatus(
+                status: .accepted,
+                orderId: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            
+            await MainActor.run {
+                currentRecipientDealStatus = .accepted
+                currentOrderItem.recipientDealStatus = .accepted
+            }
+        } catch {
+            print("Ошибка принятия сделки recipient: \(error.localizedDescription)")
+        }
+    }
+    
+    private func declineDealByRecipient() async {
+        timerManager.stopTimer()
+        do {
+            try await viewModel.updateRecipientDealStatus(
+                status: .declined,
+                orderId: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            
+            await MainActor.run {
+                currentRecipientDealStatus = .declined
+                currentOrderItem.recipientDealStatus = .declined
+            }
+        } catch {
+            print("Ошибка отклонения сделки recipient: \(error.localizedDescription)")
+        }
+    }
+    
+    private func startRecipientTimer() {
+        guard let deadline = recipientDeadline else { return }
+        guard currentRecipientDealStatus == .pending else { return }
+        
+        let orderId = currentOrderItem.id
+        let documentId = currentOrderItem.documentId
+        let vm = viewModel
+        
+        timerManager.startTimer(deadline: deadline) {
+            Task {
+                try? await vm.updateRecipientDealStatus(
+                    status: .expired,
+                    orderId: orderId,
+                    documentId: documentId
+                )
+            }
+        }
+    }
+    
+    private func stopRecipientTimer() {
+        timerManager.stopTimer()
+    }
+    
+    private func expireRecipientDeal() async {
+        timerManager.stopTimer()
+        do {
+            try await viewModel.updateRecipientDealStatus(
+                status: .expired,
+                orderId: currentOrderItem.id,
+                documentId: currentOrderItem.documentId
+            )
+            
+            await MainActor.run {
+                currentRecipientDealStatus = .expired
+                currentOrderItem.recipientDealStatus = .expired
+            }
+        } catch {
+            print("Ошибка автоматического отклонения сделки: \(error.localizedDescription)")
+        }
+    }
+    
     private func setupStatusListener() {
         let docRef = Firestore.firestore()
             .collection("orderDescription")
@@ -828,7 +1330,67 @@ struct OrderDetailView: View {
                 currentOrderItem.isInDelivery = data["isInDelivery"] as? Bool ?? false
                 currentOrderItem.isDelivered = data["isDelivered"] as? Bool ?? false
                 
-                // Читаем даты из Firestore
+                // Читаем ownerDealStatus
+                if let ownerDealStatusString = data["ownerDealStatus"] as? String,
+                   let status = OwnerDealStatus(rawValue: ownerDealStatusString) {
+                    let oldStatus = currentOwnerDealStatus
+                    currentOrderItem.ownerDealStatus = status
+                    currentOwnerDealStatus = status
+                    
+                    if oldStatus == .pending && status != .pending {
+                    }
+                }
+                
+                if let recipientDealStatusString = data["recipientDealStatus"] as? String,
+                   let status = RecipientDealStatus(rawValue: recipientDealStatusString) {
+                    let oldStatus = currentRecipientDealStatus
+                    currentOrderItem.recipientDealStatus = status
+                    currentRecipientDealStatus = status
+                    
+                    if oldStatus == .pending && status != .pending {
+                        stopRecipientTimer()
+                    } else if status == .pending && isPendingRecipientDecision {
+                        startRecipientTimer()
+                    }
+                }
+                
+                if let deadlineTimestamp = data["recipientResponseDeadline"] as? Timestamp {
+                    let newDeadline = deadlineTimestamp.dateValue()
+                    recipientDeadline = newDeadline
+                    currentOrderItem.recipientResponseDeadline = newDeadline
+                    
+                    // Автоматически проверяем истечение времени, даже если экран не открыт
+                    if currentRecipientDealStatus == .pending && Date() >= newDeadline {
+                        // Время истекло - автоматически обновляем статус
+                        let orderId = self.currentOrderItem.id
+                        let documentId = self.currentOrderItem.documentId
+                        let vm = self.viewModel
+                        
+                        Task {
+                            try? await vm.updateRecipientDealStatus(
+                                status: .expired,
+                                orderId: orderId,
+                                documentId: documentId
+                            )
+                        }
+                    } else if currentRecipientDealStatus == .pending && isPendingRecipientDecision {
+                        // Если время еще не истекло и получатель на экране - запускаем таймер
+                        let orderId = self.currentOrderItem.id
+                        let documentId = self.currentOrderItem.documentId
+                        let vm = self.viewModel
+                        
+                        self.timerManager.startTimer(deadline: newDeadline) {
+                            Task {
+                                try? await vm.updateRecipientDealStatus(
+                                    status: .expired,
+                                    orderId: orderId,
+                                    documentId: documentId
+                                )
+                            }
+                        }
+                    }
+                }
+                
                 if let pickedUpTimestamp = data["pickedUpDate"] as? Timestamp {
                     currentOrderItem.pickedUpDate = pickedUpTimestamp.dateValue()
                 }
@@ -863,7 +1425,10 @@ struct OrderDetailView: View {
             isPickedUp: false,
             isInDelivery: false,
             isDelivered: false,
-            isCompleted: false
+            isCompleted: false,
+            ownerDealStatus: .pending,
+            recipientDealStatus: .pending,
+            recipientResponseDeadline: nil
         ),
         listingItem: ListingItem(
             id: "ann1",
